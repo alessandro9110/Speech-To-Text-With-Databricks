@@ -68,10 +68,12 @@ databricks account service-principal-federation-policy create <SERVICE_PRINCIPAL
   "oidc_policy": {
     "issuer": "https://token.actions.githubusercontent.com",
     "audiences": [ "<DATABRICKS_ACCOUNT_ID>" ],
-    "subject": "repo:alessandro9110/Speech-To-Text-With-Databricks:environment:Dev"
+    "subject": "repo:<GITHUB_ORG>/<GITHUB_REPO>:environment:Dev"
   }
 }'
 ```
+
+**Nota**: Sostituisci `<GITHUB_ORG>/<GITHUB_REPO>` con `alessandro9110/Speech-To-Text-With-Databricks` per questo repository.
 
 ## Verifica della Configurazione
 
