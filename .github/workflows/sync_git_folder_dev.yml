@@ -18,10 +18,25 @@ jobs:
     runs-on: ubuntu-latest
     name: 'Update git folder'
     environment: Dev
+    # ========================================================================
+    # REQUIRED ENVIRONMENT CONFIGURATION
+    # ========================================================================
+    # The following variables and secrets must be configured in the GitHub
+    # repository settings under: Settings > Environments > Dev
+    #
+    # Required Variables:
+    #   - DATABRICKS_HOST: The Databricks workspace URL
+    #     Example: https://dbc-3cceb672-6c68.cloud.databricks.com
+    #
+    # Required Secrets:
+    #   - DATABRICKS_CLIENT_ID: The service principal application (client) ID
+    #     This is the UUID of the service principal configured for OIDC
+    #     authentication with GitHub Actions
+    # ========================================================================
     env:
       DATABRICKS_AUTH_TYPE: github-oidc
       DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
-      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }} # This is the service principal UUID.
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
 
     steps:
       - uses: actions/checkout@v3
