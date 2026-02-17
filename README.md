@@ -189,16 +189,16 @@ For more details, see [speech_to_text_asset_bundle/README.md](speech_to_text_ass
 Speech-To-Text-With-Databricks/
 ├── .github/
 │   ├── workflows/
-│   │   ├── sync_git_folder_dev.yml         # Dev environment Git sync workflow
-│   │   └── deploy_asset_bundle_prod.yml    # Prod environment deployment workflow
-│   ├── ENVIRONMENT_SETUP.md                # Detailed GitHub Actions setup
-│   └── RIEPILOGO.md                        # Configuration summary
+│   │   ├── sync_git_folder_dev.yml          # Dev environment Git sync workflow
+│   │   └── deploy_asset_bundle_prod.yml     # Prod environment deployment workflow
+│   ├── ENVIRONMENT_SETUP.md                 # Detailed GitHub Actions setup
+│   └── RIEPILOGO.md                         # Configuration summary
 ├── speech_to_text_asset_bundle/
-│   ├── databricks.yml                      # Asset bundle configuration
-│   ├── resources/                          # Job and pipeline definitions
-│   ├── src/                                # Source code and transformations
-│   └── README.md                           # Asset bundle documentation
-└── README.md                               # This file
+│   ├── databricks.yml                       # Asset bundle configuration
+│   ├── resources/                           # Job and pipeline definitions
+│   ├── src/                                 # Source code and transformations
+│   └── README.md                            # Asset bundle documentation
+└── README.md                                # This file
 ```
 
 ## Additional Documentation
