@@ -40,7 +40,8 @@ Before setting up this solution, ensure you have:
 
 ### 1. Databricks Service Principal Creation
 
-The solution uses a service principal for authentication between GitHub Actions and Databricks. Follow these steps to create and configure it:
+The solution uses a service principal for authentication between GitHub Actions and Databricks. 
+Follow these steps to create and configure it.
 
 #### Step 1.1: Create a Service Principal
 
