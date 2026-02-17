@@ -71,24 +71,29 @@ Create the Federation Policy in the Accoun Console:
 
 **Note:** the Federation Policy is only available into Account Console and not for Free Edition.
 
-#### Step 1.4: Create the Git Repo in the environemt target
-In the target workspace (dev) create the git repository in the path : Workspace/Shared/
+#### Step 1.4: Create the Git Repo in the Dev environment
+In the Dev workspace, create the git repository in the path: Workspace/Shared/
+
+**Note**: This step is only required for the Dev environment, which uses Git folder synchronization. The Prod environment uses direct asset bundle deployment.
 
 
 ### 2. GitHub Actions Configuration
 
 Once the Databricks service principal is configured, set up GitHub Actions:
 
-#### Step 2.1: Create GitHub Environment
+#### Step 2.1: Create GitHub Environments
+
+Create both Dev and Prod environments:
 
 1. Go to your repository **Settings** > **Environments**
 2. Click **New environment**
 3. Name it: `Dev`
 4. Click **Configure environment**
+5. Repeat steps 2-4 for the `Prod` environment
 
 #### Step 2.2: Configure Environment Variables
 
-In the "Dev" environment, add these variables:
+In both "Dev" and "Prod" environments, add these variables:
 
 | Variable Name | Description | Example Value |
 |--------------|-------------|---------------|
@@ -96,11 +101,20 @@ In the "Dev" environment, add these variables:
 
 #### Step 2.3: Configure Environment Secrets
 
-In the "Dev" environment, add these secrets:
+In both "Dev" and "Prod" environments, add these secrets:
 
 | Secret Name | Description | Value |
 |------------|-------------|-------|
 | `DATABRICKS_CLIENT_ID` | Service principal Application ID (UUID) | The UUID from Step 1.1 |
+
+#### Step 2.4: Configure OIDC Federation Policy for Prod
+
+Create an additional Federation Policy for the Prod environment:
+1. Go to **User Management** -> **Service principals** -> **GitHub Actions Deploy Principal**
+2. Click on **Create Policy** and pass the following values:
+   - Issuer URL: https://token.actions.githubusercontent.com
+   - Subject: repo:alessandro9110/Speech-To-Text-With-Databricks:environment:Prod
+   - Audiences: Service Principal UUID
 
 **📖 For detailed GitHub Actions setup instructions**, see [.github/ENVIRONMENT_SETUP.md](.github/ENVIRONMENT_SETUP.md)
 
@@ -108,11 +122,15 @@ In the "Dev" environment, add these secrets:
 
 ### Automated Deployment (GitHub Actions)
 
-The repository includes a GitHub Actions workflow that automatically deploys changes to Databricks when code is pushed to the `dev` branch:
+The repository includes two GitHub Actions workflows for automated deployment:
+
+#### Development Deployment
+Automatically updates the Git folder in Databricks when code is pushed to the `dev` branch:
 
 ```yaml
 # Workflow: .github/workflows/sync_git_folder_dev.yml
 # Triggers: On push to 'dev' branch
+# Environment: Dev
 # Authentication: GitHub OIDC → Databricks Service Principal
 ```
 
@@ -122,6 +140,23 @@ The repository includes a GitHub Actions workflow that automatically deploys cha
 3. GitHub generates a short-lived OIDC token
 4. Token is exchanged for Databricks access token via the service principal
 5. Databricks repositories are updated with the latest code
+
+#### Production Deployment
+Automatically deploys the asset bundle to production when code is pushed to the `main` branch:
+
+```yaml
+# Workflow: .github/workflows/deploy_asset_bundle_prod.yml
+# Triggers: On push to 'main' branch
+# Environment: Prod
+# Authentication: GitHub OIDC → Databricks Service Principal
+```
+
+**What happens during production deployment:**
+1. Code is pushed to the `main` branch
+2. GitHub Actions workflow triggers
+3. GitHub generates a short-lived OIDC token
+4. Token is exchanged for Databricks access token via the service principal
+5. Asset bundle is deployed to the production target using `databricks bundle deploy --target prod`
 
 ### Manual Deployment (Databricks CLI)
 
@@ -154,15 +189,16 @@ For more details, see [speech_to_text_asset_bundle/README.md](speech_to_text_ass
 Speech-To-Text-With-Databricks/
 ├── .github/
 │   ├── workflows/
-│   │   └── sync_git_folder_dev.yml    # GitHub Actions workflow
-│   ├── ENVIRONMENT_SETUP.md            # Detailed GitHub Actions setup
-│   └── RIEPILOGO.md                    # Configuration summary
+│   │   ├── sync_git_folder_dev.yml         # Dev environment Git sync workflow
+│   │   └── deploy_asset_bundle_prod.yml    # Prod environment deployment workflow
+│   ├── ENVIRONMENT_SETUP.md                # Detailed GitHub Actions setup
+│   └── RIEPILOGO.md                        # Configuration summary
 ├── speech_to_text_asset_bundle/
-│   ├── databricks.yml                  # Asset bundle configuration
-│   ├── resources/                      # Job and pipeline definitions
-│   ├── src/                            # Source code and transformations
-│   └── README.md                       # Asset bundle documentation
-└── README.md                           # This file
+│   ├── databricks.yml                      # Asset bundle configuration
+│   ├── resources/                          # Job and pipeline definitions
+│   ├── src/                                # Source code and transformations
+│   └── README.md                           # Asset bundle documentation
+└── README.md                               # This file
 ```
 
 ## Additional Documentation
@@ -180,19 +216,31 @@ Speech-To-Text-With-Databricks/
 **Issue**: GitHub Actions workflow fails with authentication errors
 
 **Solution**:
-1. Verify the service principal federation policy is correctly configured
+1. Verify the service principal federation policy is correctly configured for the target environment (Dev or Prod)
 2. Ensure `DATABRICKS_CLIENT_ID` matches the service principal's Application ID
-3. Check that the `subject` in the federation policy matches: `repo:alessandro9110/Speech-To-Text-With-Databricks:environment:Dev`
+3. Check that the `subject` in the federation policy matches:
+   - Dev: `repo:alessandro9110/Speech-To-Text-With-Databricks:environment:Dev`
+   - Prod: `repo:alessandro9110/Speech-To-Text-With-Databricks:environment:Prod`
 4. Confirm the service principal has necessary workspace permissions
 
-### Cannot Update Git Folder
+### Cannot Update Git Folder (Dev Environment)
 
-**Issue**: Workflow fails to update the Databricks Git folder
+**Issue**: Dev workflow fails to update the Databricks Git folder
 
 **Solution**:
 1. Verify the service principal has `CAN_MANAGE` permission on the target folder
 2. Ensure the workspace path in the workflow matches your workspace structure
 3. Check that the repository is properly linked in Databricks
+
+### Asset Bundle Deployment Fails (Prod Environment)
+
+**Issue**: Prod workflow fails to deploy the asset bundle
+
+**Solution**:
+1. Verify the service principal has appropriate permissions for asset bundle deployment
+2. Check the `databricks.yml` configuration for the `prod` target
+3. Ensure the workspace path specified in the prod target is accessible
+4. Review the workflow logs for specific error messages
 
 ### For more troubleshooting help, see the [ENVIRONMENT_SETUP.md](.github/ENVIRONMENT_SETUP.md#troubleshooting) documentation.
 
