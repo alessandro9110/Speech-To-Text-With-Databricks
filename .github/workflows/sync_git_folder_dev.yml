@@ -28,4 +28,4 @@ jobs:
       - uses: databricks/setup-cli@main
       - name: Update git folder
         # Set your workspace path and branch name here
-        run: databricks repos update /Workspace/Users/a.armillotta91@gmail.com/ --branch dev
+        run: databricks repos update /Workspace/Shared/Speech-To-Text-With-Databricks --branch dev
