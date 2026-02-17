@@ -1,12 +1,12 @@
 name: Sync Git Folder
 
-concurrency: prod_environment
+concurrency: dev_environment
 
 on:
   push:
     branches:
       # Set your base branch name here
-      - git-folder-cicd-example
+      - dev
 
 permissions:
   # These permissions are required for workload identity federation.
@@ -17,7 +17,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     name: 'Update git folder'
-    environment: Prod
+    environment: Dev
     env:
       DATABRICKS_AUTH_TYPE: github-oidc
       DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
@@ -28,4 +28,4 @@ jobs:
       - uses: databricks/setup-cli@main
       - name: Update git folder
         # Set your workspace path and branch name here
-        run: databricks repos update /Workspace/<git-folder-path> --branch git-folder-cicd-example
+        run: databricks repos update /Workspace/Users/a.armillotta91@gmail.com/ --branch dev
