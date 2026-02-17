@@ -1,4 +1,4 @@
-name: Sync Git Folder
+name: Sync Git Folder Dev
 
 concurrency: dev_environment
 
