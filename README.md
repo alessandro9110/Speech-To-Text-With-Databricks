@@ -106,10 +106,12 @@ The service principal needs permissions to update Git folders in the workspace:
 
 ```bash
 # Grant permissions on the workspace folder
-databricks workspace permissions set /Workspace/Users/a.armillotta91@gmail.com/ \
+databricks workspace permissions set /Workspace/Users/<your-email>/ \
   --service-principal-id <SERVICE_PRINCIPAL_ID> \
   --permission-level CAN_MANAGE
 ```
+
+**Note**: Replace `<your-email>` with your Databricks user email address.
 
 ### 2. GitHub Actions Configuration
 
