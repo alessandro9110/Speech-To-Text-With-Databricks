@@ -1,54 +1,54 @@
-# Riepilogo: Variabili e Secret per il Workflow Dev
+# Summary: Variables and Secrets for Dev Workflow
 
-## Cosa è stato fatto
+## What Was Done
 
-Ho aggiunto la documentazione e i commenti necessari per le variabili e i secret del workflow `.github/workflows/sync_git_folder_dev.yml`.
+Added the necessary documentation and comments for the variables and secrets of the `.github/workflows/sync_git_folder_dev.yml` workflow.
 
-## File Modificati/Creati
+## Modified/Created Files
 
 1. **`.github/workflows/sync_git_folder_dev.yml`**
-   - Aggiunti commenti dettagliati che spiegano quali variabili e secret sono necessari
-   - Il workflow è pronto per l'uso, mancano solo i valori da configurare in GitHub
+   - Added detailed comments explaining which variables and secrets are required
+   - The workflow is ready to use, only the values need to be configured in GitHub
 
 2. **`.github/ENVIRONMENT_SETUP.md`**
-   - Documentazione completa in italiano su come configurare l'ambiente GitHub
-   - Istruzioni passo-passo per aggiungere variabili e secret
-   - Sezione troubleshooting e riferimenti
+   - Complete documentation on how to configure the GitHub environment
+   - Step-by-step instructions for adding variables and secrets
+   - Troubleshooting section and references
 
-## Cosa Devi Fare Ora
+## What You Need to Do Now
 
-Per completare la configurazione, devi andare nelle impostazioni del repository GitHub e configurare:
+To complete the configuration, you need to go to the GitHub repository settings and configure:
 
-### 1. Creare l'Ambiente "Dev" (se non esiste)
-- Vai su: **Settings** > **Environments** > **New environment**
-- Nome: `Dev`
+### 1. Create the "Dev" Environment (if it doesn't exist)
+- Go to: **Settings** > **Environments** > **New environment**
+- Name: `Dev`
 
-### 2. Aggiungere le Variabili nell'Ambiente "Dev"
+### 2. Add Variables in the "Dev" Environment
 
-| Nome | Valore da Inserire |
-|------|-------------------|
-| `DATABRICKS_HOST` | L'URL del tuo workspace Databricks (es: `https://dbc-3cceb672-6c68.cloud.databricks.com`) |
+| Name | Value to Enter |
+|------|----------------|
+| `DATABRICKS_HOST` | Your Databricks workspace URL (e.g., `https://dbc-3cceb672-6c68.cloud.databricks.com`) |
 
-### 3. Aggiungere i Secret nell'Ambiente "Dev"
+### 3. Add Secrets in the "Dev" Environment
 
-| Nome | Valore da Inserire |
-|------|-------------------|
-| `DATABRICKS_CLIENT_ID` | Il client ID (UUID) del service principal configurato per l'autenticazione OIDC |
+| Name | Value to Enter |
+|------|----------------|
+| `DATABRICKS_CLIENT_ID` | The client ID (UUID) of the service principal configured for OIDC authentication |
 
-## Documentazione Completa
+## Complete Documentation
 
-Consulta il file `.github/ENVIRONMENT_SETUP.md` per istruzioni dettagliate e informazioni sulla configurazione OIDC.
+Consult the `.github/ENVIRONMENT_SETUP.md` file for detailed instructions and information on OIDC configuration.
 
-## Note Importanti
+## Important Notes
 
-- Il workflow utilizza GitHub OIDC per l'autenticazione con Databricks (metodo più sicuro)
-- Non servono token a lungo termine o password
-- Il service principal deve avere una federation policy configurata per questo repository
-- Le permission `id-token: write` sono già configurate nel workflow
+- The workflow uses GitHub OIDC for authentication with Databricks (more secure method)
+- No long-lived tokens or passwords are needed
+- The service principal must have a federation policy configured for this repository
+- The `id-token: write` permissions are already configured in the workflow
 
-## Verifica
+## Verification
 
-Dopo aver inserito i valori:
-1. Vai alla tab **Actions**
-2. Esegui manualmente il workflow per testare
-3. Verifica che completi con successo
+After entering the values:
+1. Go to the **Actions** tab
+2. Manually run the workflow to test
+3. Verify that it completes successfully

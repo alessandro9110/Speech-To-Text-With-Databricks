@@ -1,69 +1,69 @@
 # GitHub Actions Environment Setup
 
-Questo documento spiega come configurare le variabili e i secret necessari per il workflow `sync_git_folder_dev.yml`.
+This document explains how to configure the variables and secrets required for the `sync_git_folder_dev.yml` workflow.
 
-## Prerequisiti
+## Prerequisites
 
-1. Un service principal Databricks configurato con workload identity federation per GitHub Actions
-2. Accesso amministrativo al repository GitHub per configurare gli ambienti
+1. A Databricks service principal configured with workload identity federation for GitHub Actions
+2. Administrative access to the GitHub repository to configure environments
 
-## Configurazione dell'Ambiente "Dev"
+## Configuring the "Dev" Environment
 
-Il workflow `sync_git_folder_dev.yml` richiede le seguenti variabili e secret configurati nell'ambiente GitHub chiamato **"Dev"**.
+The `sync_git_folder_dev.yml` workflow requires the following variables and secrets configured in the GitHub environment named **"Dev"**.
 
-### Passo 1: Creare l'Ambiente
+### Step 1: Create the Environment
 
-Se l'ambiente "Dev" non esiste già:
+If the "Dev" environment doesn't already exist:
 
-1. Vai alle impostazioni del repository GitHub
-2. Naviga a **Settings** > **Environments**
-3. Clicca su **New environment**
-4. Nomina l'ambiente: `Dev`
-5. Clicca su **Configure environment**
+1. Go to the GitHub repository settings
+2. Navigate to **Settings** > **Environments**
+3. Click on **New environment**
+4. Name the environment: `Dev`
+5. Click on **Configure environment**
 
-### Passo 2: Configurare le Variabili
+### Step 2: Configure Variables
 
-Nell'ambiente "Dev", aggiungi le seguenti **Environment variables**:
+In the "Dev" environment, add the following **Environment variables**:
 
-| Nome Variabile | Descrizione | Esempio |
-|----------------|-------------|---------|
-| `DATABRICKS_HOST` | L'URL del workspace Databricks | `https://dbc-3cceb672-6c68.cloud.databricks.com` |
+| Variable Name | Description | Example |
+|---------------|-------------|---------|
+| `DATABRICKS_HOST` | The Databricks workspace URL | `https://dbc-3cceb672-6c68.cloud.databricks.com` |
 
-**Come aggiungere:**
-1. Nella pagina di configurazione dell'ambiente "Dev"
-2. Scorri fino alla sezione **Environment variables**
-3. Clicca su **Add variable**
-4. Inserisci il nome e il valore
-5. Clicca su **Add variable**
+**How to add:**
+1. In the "Dev" environment configuration page
+2. Scroll to the **Environment variables** section
+3. Click on **Add variable**
+4. Enter the name and value
+5. Click on **Add variable**
 
-### Passo 3: Configurare i Secret
+### Step 3: Configure Secrets
 
-Nell'ambiente "Dev", aggiungi i seguenti **Environment secrets**:
+In the "Dev" environment, add the following **Environment secrets**:
 
-| Nome Secret | Descrizione | Come ottenerlo |
-|-------------|-------------|----------------|
-| `DATABRICKS_CLIENT_ID` | Il client ID (UUID) del service principal configurato per l'autenticazione OIDC | Ottienilo dalla configurazione del service principal in Databricks |
+| Secret Name | Description | How to obtain |
+|-------------|-------------|---------------|
+| `DATABRICKS_CLIENT_ID` | The client ID (UUID) of the service principal configured for OIDC authentication | Obtain it from the service principal configuration in Databricks |
 
-**Come aggiungere:**
-1. Nella pagina di configurazione dell'ambiente "Dev"
-2. Scorri fino alla sezione **Environment secrets**
-3. Clicca su **Add secret**
-4. Inserisci il nome e il valore
-5. Clicca su **Add secret**
+**How to add:**
+1. In the "Dev" environment configuration page
+2. Scroll to the **Environment secrets** section
+3. Click on **Add secret**
+4. Enter the name and value
+5. Click on **Add secret**
 
-## Autenticazione OIDC con Databricks
+## OIDC Authentication with Databricks
 
-Il workflow utilizza GitHub OIDC (OpenID Connect) per autenticarsi con Databricks, che è un metodo più sicuro rispetto all'uso di token a lungo termine.
+The workflow uses GitHub OIDC (OpenID Connect) to authenticate with Databricks, which is a more secure method compared to using long-lived tokens.
 
-### Requisiti per OIDC:
+### OIDC Requirements:
 
-1. **Service Principal in Databricks**: Devi avere un service principal configurato nel tuo account Databricks
-2. **Federation Policy**: Il service principal deve avere una policy di federazione che permette l'accesso da GitHub Actions
+1. **Service Principal in Databricks**: You must have a service principal configured in your Databricks account
+2. **Federation Policy**: The service principal must have a federation policy that allows access from GitHub Actions
 
-### Configurazione del Service Principal (se non già fatto):
+### Service Principal Configuration (if not already done):
 
 ```bash
-# Crea una federation policy per il service principal
+# Create a federation policy for the service principal
 databricks account service-principal-federation-policy create <SERVICE_PRINCIPAL_ID> --json '{
   "oidc_policy": {
     "issuer": "https://token.actions.githubusercontent.com",
@@ -73,33 +73,33 @@ databricks account service-principal-federation-policy create <SERVICE_PRINCIPAL
 }'
 ```
 
-**Nota**: Sostituisci `<GITHUB_ORG>/<GITHUB_REPO>` con `alessandro9110/Speech-To-Text-With-Databricks` per questo repository.
+**Note**: Replace `<GITHUB_ORG>/<GITHUB_REPO>` with `alessandro9110/Speech-To-Text-With-Databricks` for this repository.
 
-## Verifica della Configurazione
+## Configuration Verification
 
-Dopo aver configurato le variabili e i secret:
+After configuring the variables and secrets:
 
-1. Vai alla tab **Actions** nel repository
-2. Trova il workflow "Sync Git Folder Dev"
-3. Se necessario, esegui manualmente il workflow per testare la configurazione
-4. Verifica che il workflow completi con successo
+1. Go to the **Actions** tab in the repository
+2. Find the "Sync Git Folder Dev" workflow
+3. If necessary, manually run the workflow to test the configuration
+4. Verify that the workflow completes successfully
 
-## Risoluzione dei Problemi
+## Troubleshooting
 
-### Errore: "DATABRICKS_HOST is not set"
-- Verifica che la variabile `DATABRICKS_HOST` sia configurata nell'ambiente "Dev"
-- Assicurati che il nome dell'ambiente nel workflow corrisponda esattamente a quello configurato
+### Error: "DATABRICKS_HOST is not set"
+- Verify that the `DATABRICKS_HOST` variable is configured in the "Dev" environment
+- Ensure that the environment name in the workflow exactly matches the configured one
 
-### Errore: "DATABRICKS_CLIENT_ID is not set"
-- Verifica che il secret `DATABRICKS_CLIENT_ID` sia configurato nell'ambiente "Dev"
-- Assicurati che il valore sia corretto
+### Error: "DATABRICKS_CLIENT_ID is not set"
+- Verify that the `DATABRICKS_CLIENT_ID` secret is configured in the "Dev" environment
+- Ensure that the value is correct
 
-### Errore di autenticazione OIDC
-- Verifica che il service principal abbia la federation policy configurata correttamente
-- Verifica che il `subject` nella policy corrisponda al pattern del repository e dell'ambiente
-- Assicurati che le permission `id-token: write` siano impostate nel workflow (già presente)
+### OIDC authentication error
+- Verify that the service principal has the federation policy configured correctly
+- Verify that the `subject` in the policy matches the repository and environment pattern
+- Ensure that the `id-token: write` permissions are set in the workflow (already present)
 
-## Riferimenti
+## References
 
 - [Databricks - Enable workload identity federation for GitHub Actions](https://docs.databricks.com/dev-tools/auth/provider-github)
 - [GitHub Docs - Using environments for deployment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment)
