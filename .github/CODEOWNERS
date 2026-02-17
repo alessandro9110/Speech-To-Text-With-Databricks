@@ -1,0 +1,26 @@
+# CODEOWNERS
+# 
+# Questo file definisce chi è responsabile per il codice in questo repository.
+# Quando viene creata una Pull Request, i code owners vengono automaticamente
+# richiesti per la review.
+#
+# Maggiori informazioni: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner per tutti i file nel repository
+* @alessandro9110
+
+# Configurazioni Databricks
+databricks.yml @alessandro9110
+*.yml @alessandro9110
+
+# Pipeline e risorse Databricks
+/speech_to_text_asset_bundle/resources/ @alessandro9110
+
+# Codice sorgente principale
+/speech_to_text_asset_bundle/src/ @alessandro9110
+
+# Test
+/speech_to_text_asset_bundle/tests/ @alessandro9110
+
+# Workflow GitHub Actions
+/.github/ @alessandro9110

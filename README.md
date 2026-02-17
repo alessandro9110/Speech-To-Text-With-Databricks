@@ -189,11 +189,16 @@ ruff format .
 
 I contributi sono benvenuti! Per contribuire:
 
+⚠️ **Importante**: Il branch `main` è protetto e non accetta push diretti. Tutte le modifiche devono passare attraverso Pull Request.
+
 1. Fai un fork del repository
 2. Crea un branch per la tua feature (`git checkout -b feature/AmazingFeature`)
 3. Committa le tue modifiche (`git commit -m 'Add some AmazingFeature'`)
 4. Pusha il branch (`git push origin feature/AmazingFeature`)
-5. Apri una Pull Request
+5. Apri una Pull Request verso il branch `main`
+6. Attendi la review e l'approvazione prima del merge
+
+📖 Per maggiori dettagli sulla protezione del branch e il workflow di sviluppo, consulta [Branch Protection Guidelines](.github/BRANCH_PROTECTION.md).
 
 ## 📚 Risorse e Riferimenti
 
