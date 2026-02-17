@@ -26,37 +26,27 @@ This repository contains a Databricks Asset Bundle for speech-to-text processing
 Before setting up this solution, ensure you have:
 
 1. **Databricks Account**
-   - Account administrator access
+   - Account administrator access (Account Console)
    - A Databricks workspace (AWS, Azure, or GCP)
 
 2. **GitHub Repository**
    - Administrative access to configure environments and secrets
    - Repository: `alessandro9110/Speech-To-Text-With-Databricks`
 
-3. **Databricks CLI**
+3. **Databricks CLI (Optional)**
    - Install: `pip install databricks-cli` or use [Databricks CLI installation guide](https://docs.databricks.com/dev-tools/cli/index.html)
 
 ## Initial Setup
 
-### 1. Databricks Service Principal Setup
+### 1. Databricks Service Principal Creation
 
 The solution uses a service principal for authentication between GitHub Actions and Databricks. Follow these steps to create and configure it:
 
 #### Step 1.1: Create a Service Principal
 
-Using the Databricks CLI or UI, create a service principal:
-
-```bash
-# Using Databricks CLI
-databricks account service-principals create \
-  --json '{
-    "displayName": "GitHub Actions Deploy Principal",
-    "active": true
-  }'
-```
-
-Or via the [Databricks UI](https://docs.databricks.com/administration-guide/users-groups/service-principals.html):
-1. Navigate to **Account Console** > **User management** > **Service principals**
+Using the Databricks UI, create a service principal:
+Via the [Databricks UI](https://docs.databricks.com/administration-guide/users-groups/service-principals.html):
+1. Navigate to **Account Console** -> **User management** -> **Service principals**
 2. Click **Add service principal**
 3. Enter a name (e.g., "GitHub Actions Deploy Principal")
 4. Save and note the **Application ID (Client ID)**
@@ -64,54 +54,25 @@ Or via the [Databricks UI](https://docs.databricks.com/administration-guide/user
 #### Step 1.2: Assign Workspace Permissions
 
 Grant the service principal access to your workspace:
-
-```bash
-# Add service principal to workspace
-databricks workspace-assignment create \
-  --workspace-id <WORKSPACE_ID> \
-  --principal-id <SERVICE_PRINCIPAL_ID>
-```
-
-Or via UI:
-1. Go to your **Workspace settings** > **Permissions**
+1. Go to your **Workspace settings** -> **Permissions**
 2. Add the service principal with appropriate permissions (e.g., "User" or "Admin")
 
 #### Step 1.3: Configure OIDC Federation Policy
 
-Enable GitHub OIDC authentication for the service principal:
+Federation policies allow your automated workloads running outside of Databricks to securely access Databricks APIs, using tokens provided by the workload runtime.
 
-```bash
-databricks account service-principal-federation-policy create <SERVICE_PRINCIPAL_ID> --json '{
-  "name": "GitHub Actions OIDC Policy",
-  "policy": {
-    "oidc_policy": {
-      "issuer": "https://token.actions.githubusercontent.com",
-      "audiences": ["<DATABRICKS_ACCOUNT_ID>"],
-      "subject": "repo:alessandro9110/Speech-To-Text-With-Databricks:environment:Dev"
-    }
-  }
-}'
-```
+Create the Federation Policy in the Accoun Console:
+1. Go to **User Managment** -> **Service principals** -> **GitHub Actions Deploy Principal**
+2. Click on **Create Policy** and pass the following values:
+   . Issuer URL: https://token.actions.githubusercontent.com
+   . Subject: repo:alessandro9110/Speech-To-Text-With-Databricks:environment:Dev (if you Forked or CLoned the repo, use your account_id instead of alessandro9110)
+   . Audiences: Service Principal UUID
 
-**Important**: 
-- Replace `<SERVICE_PRINCIPAL_ID>` with your service principal's Application ID
-- Replace `<DATABRICKS_ACCOUNT_ID>` with your Databricks account ID
-- The `subject` field must match your repository and environment name exactly
+**Note:** the Federation Policy is only available into Account Console and not for Free Edition.
 
-This configuration allows GitHub Actions to authenticate without long-lived tokens, using short-lived OIDC tokens instead.
+#### Step 1.4: Create the Git Repo in the environemt target
+In the target workspace (dev) create the git repository in the path : Workspace/Shared/
 
-#### Step 1.4: Grant Repository Permissions
-
-The service principal needs permissions to update Git folders in the workspace:
-
-```bash
-# Grant permissions on the workspace folder
-databricks workspace permissions set /Workspace/Users/<user-email-address>/ \
-  --service-principal-id <SERVICE_PRINCIPAL_ID> \
-  --permission-level CAN_MANAGE
-```
-
-**Note**: Replace `<user-email-address>` with your Databricks user email address.
 
 ### 2. GitHub Actions Configuration
 
@@ -130,7 +91,7 @@ In the "Dev" environment, add these variables:
 
 | Variable Name | Description | Example Value |
 |--------------|-------------|---------------|
-| `DATABRICKS_HOST` | Your Databricks workspace URL | `https://dbc-3cceb672-6c68.cloud.databricks.com` |
+| `DATABRICKS_HOST` | Your Databricks workspace URL | `https://xxxxxxxxxxxxxx.cloud.databricks.com` |
 
 #### Step 2.3: Configure Environment Secrets
 
@@ -138,7 +99,7 @@ In the "Dev" environment, add these secrets:
 
 | Secret Name | Description | Value |
 |------------|-------------|-------|
-| `DATABRICKS_CLIENT_ID` | Service principal Application ID | The UUID from Step 1.1 |
+| `DATABRICKS_CLIENT_ID` | Service principal Application ID (UUID) | The UUID from Step 1.1 |
 
 **📖 For detailed GitHub Actions setup instructions**, see [.github/ENVIRONMENT_SETUP.md](.github/ENVIRONMENT_SETUP.md)
 
