@@ -24,7 +24,7 @@ targets:
   dev:
     # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
     presets:
-      name_prefix: dev_${workspace.current_user.short_name}_ # prefix all resource names with testing_
+      name_prefix: ${workspace.current_user.short_name}_ # prefix all resource names with dev_user. Whne the 
       pipelines_development: true # set development to true for pipelines
       trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
       jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
@@ -35,20 +35,50 @@ targets:
     workspace:
       host: https://dbc-3cceb672-6c68.cloud.databricks.com
       root_path: /Workspace/Users/a.armillotta91@gmail.com/.bundle/${bundle.name}/${bundle.target}
+    
+    #define variables
     variables:
-      catalog: dev
-      schema: speech_to_text
+      catalog: speech_to_text
+      schema: dev
+    
+    # define resouces like: schemas etc.
+    resources:
+      schemas:
+        dev:
+          name: dev
+          catalog_name: speech_to_text
+          comment: 'Schema for development'
 
 
   prod:
+    presets:
+      name_prefix: 'prod_' 
+      pipelines_development: false # set development to true for pipelines
+      trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
+      jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
+      tags:
+        department: finance
+
     mode: production
+
     workspace:
       host: https://dbc-3cceb672-6c68.cloud.databricks.com
       # We explicitly deploy to /Workspace/Users/a.armillotta91@gmail.com to make sure we only have a single copy.
-      root_path: ~/Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+
     variables:
-      catalog: prod
-      schema: speech_to_text
+      catalog: speech_to_text
+      schema: prod
+    
+        # define resouces like: schemas etc.
+    resources:
+      schemas:
+        prod:
+          name: prod
+          catalog_name: speech_to_text
+          comment: 'Schema for development'
+          
+    
     permissions:
       - user_name: a.armillotta91@gmail.com
         level: CAN_MANAGE
