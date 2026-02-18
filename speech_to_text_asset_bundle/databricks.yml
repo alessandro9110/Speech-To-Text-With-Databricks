@@ -21,6 +21,7 @@ variables:
     default: "speech_to_text_with_databricks"
   schema:
     description: The catalog to use for Speech To Text With Databrikcs solution.
+    default: dev
   service_principal_id:
     description: The Application ID (UUID) of the service principal for production
     default: ""
@@ -50,13 +51,13 @@ targets:
 
     #define variables
     variables:
-      catalog: ${var.catalog.default}
+      catalog: speech_to_text_with_databricks
       schema: dev
 
     # Note: workspace.host is not specified here because the bundle automatically uses the workspace where the code is deployed (based on your Databricks CLI profile or current context)
     workspace:
       #host
-      root_path: ~/Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
     
 
   prod:
