@@ -116,7 +116,7 @@ Create an additional Federation Policy for the Prod environment:
    - Subject: repo:alessandro9110/Speech-To-Text-With-Databricks:environment:Prod
    - Audiences: Service Principal UUID
 
-**📖 For detailed GitHub Actions setup instructions**, see [.github/ENVIRONMENT_SETUP.md](.github/ENVIRONMENT_SETUP.md)
+**📖 For detailed GitHub Actions environment setup instructions for the Dev environment**, see [.github/ENVIRONMENT_SETUP.md](.github/ENVIRONMENT_SETUP.md). The Prod environment follows the same pattern, plus the additional policy configuration described above.
 
 ## Deployment
 
