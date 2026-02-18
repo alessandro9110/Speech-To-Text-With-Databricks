@@ -24,7 +24,6 @@ variables:
     default: dev
   service_principal_id:
     description: The Application ID (UUID) of the service principal for production
-    default: ""
 
 
 # Targets define different deployment environments (dev, prod, etc.) with their specific configurations.
