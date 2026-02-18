@@ -21,7 +21,7 @@ variables:
     default: "speech_to_text"
   schema:
     description: The catalog to use for Speech To Text With Databrikcs solution.
-    default: "default"
+    default: default
   service_principal_id:
     description: The Application ID (UUID) of the service principal for production
 
