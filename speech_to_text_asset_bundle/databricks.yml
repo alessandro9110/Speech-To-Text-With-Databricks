@@ -44,6 +44,7 @@ targets:
     variables:
       catalog: speech_to_text
       schema: dev
+      databricks_host: TO_CHANGE##
     
     # define resouces like: schemas etc.
     resources:
