@@ -9,6 +9,7 @@ A Databricks asset bundle solution for speech-to-text processing with automated 
 - [Initial Setup](#initial-setup)
   - [1. Databricks Service Principal Setup](#1-databricks-service-principal-setup)
   - [2. GitHub Actions Configuration](#2-github-actions-configuration)
+- [Local Development](#local-development)
 - [Deployment](#deployment)
 - [Project Structure](#project-structure)
 - [Additional Documentation](#additional-documentation)
@@ -72,7 +73,7 @@ Create the Federation Policy in the Accoun Console:
 **Note:** the Federation Policy is only available into Account Console and not for Free Edition.
 
 #### Step 1.4: Create the Git Repo in the Dev environment
-In the Dev workspace, create the git repository in the path: Workspace/Shared/
+In the Dev workspace, create the git repository in the path: `/Workspace/Shared/Speech-To-Text-With-Databricks`
 
 **Note**: This step is only required for the Dev environment, which uses Git folder synchronization. The Prod environment uses direct asset bundle deployment.
 
@@ -118,11 +119,43 @@ Create an additional Federation Policy for the Prod environment:
 
 **📖 For detailed GitHub Actions environment setup instructions for the Dev environment**, see [.github/ENVIRONMENT_SETUP.md](.github/ENVIRONMENT_SETUP.md). The Prod environment follows the same pattern, plus the additional policy configuration described above.
 
+## Local Development
+
+Before deploying, you can test your changes locally:
+
+```bash
+cd speech_to_text_asset_bundle
+
+# Install development dependencies
+uv sync --dev
+# or: pip install -e ".[dev]"
+
+# Run linter
+ruff check .
+
+# Run tests
+pytest
+
+# Build package
+uv build --wheel
+
+# Validate bundle
+databricks bundle validate --target dev
+```
+
+For detailed development instructions, see [docs/08-development-workflow.md](docs/08-development-workflow.md).
+
 ## Deployment
 
 ### Automated Deployment (GitHub Actions)
 
-The repository includes two GitHub Actions workflows for automated deployment:
+The repository includes two GitHub Actions workflows for automated deployment.
+
+**Important**: Workflows only run when changes are made to:
+- `speech_to_text_asset_bundle/**`
+- `.github/workflows/**`
+
+Changes to documentation files (e.g., `docs/`, `*.md` in root) will not trigger workflows.
 
 #### Development Deployment
 Automatically updates the Git folder in Databricks when code is pushed to the `dev` branch:
@@ -207,9 +240,23 @@ Speech-To-Text-With-Databricks/
 
 ## Additional Documentation
 
+### Comprehensive Documentation
+For detailed documentation on all aspects of this project, see the **[docs/](docs/)** folder:
+
+- **[Project Overview](docs/00-project-overview.md)** - Architecture and components
+- **[Repository Structure](docs/07-repository-structure.md)** - Understanding the codebase
+- **[Development Workflow](docs/08-development-workflow.md)** - How to develop and test locally
+- **[CI/CD Workflows](docs/10-cicd-workflows.md)** - Understanding GitHub Actions workflows
+- **[Configuration Guide](docs/06-configuration-guide.md)** - All configuration options
+- **[README Audit Results](docs/README-AUDIT-RESULTS.md)** - Recent audit findings
+
+### Quick Reference
 - **[GitHub Actions Environment Setup](.github/ENVIRONMENT_SETUP.md)** - Detailed guide for configuring GitHub Actions
-- **[Configuration Summary](.github/RIEPILOGO.md)** - Quick reference for environment variables and secrets
+- **[Configuration Summary](.github/RIEPILOGO.md)** - Quick reference for environment variables and secrets (Italian)
 - **[Asset Bundle Documentation](speech_to_text_asset_bundle/README.md)** - Details on managing the Databricks asset bundle
+- **[Security Changes](BEFORE_AFTER.md)** - Before/after security improvements
+
+### External Links
 - **[Databricks Asset Bundles](https://docs.databricks.com/dev-tools/bundles/index.html)** - Official Databricks documentation
 - **[GitHub OIDC in Databricks](https://docs.databricks.com/dev-tools/auth/provider-github.html)** - Official guide for GitHub Actions integration
 
