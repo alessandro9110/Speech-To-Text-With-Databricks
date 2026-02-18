@@ -1,0 +1,46 @@
+name: Deploy Asset Bundle Prod
+
+concurrency: prod_environment
+
+on:
+  push:
+    branches:
+      # Triggers on push to main branch
+      - main
+
+permissions:
+  # These permissions are required for workload identity federation.
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: 'Deploy Asset Bundle to Production'
+    environment: Prod
+    # ========================================================================
+    # REQUIRED ENVIRONMENT CONFIGURATION
+    # ========================================================================
+    # The following variables and secrets must be configured in the GitHub
+    # repository settings under: Settings > Environments > Prod
+    #
+    # Required Variables:
+    #   - DATABRICKS_HOST: The Databricks workspace URL
+    #     Example: https://dbc-3cceb672-6c68.cloud.databricks.com
+    #
+    # Required Secrets:
+    #   - DATABRICKS_CLIENT_ID: The service principal application (client) ID
+    #     This is the UUID of the service principal configured for OIDC
+    #     authentication with GitHub Actions
+    # ========================================================================
+    env:
+      DATABRICKS_AUTH_TYPE: github-oidc
+      DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: databricks/setup-cli@main
+      - name: Deploy asset bundle to production
+        working-directory: ./speech_to_text_asset_bundle
+        run: databricks bundle deploy --target prod
