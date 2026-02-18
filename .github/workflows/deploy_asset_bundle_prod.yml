@@ -30,6 +30,8 @@ jobs:
     # Required Variables:
     #   - DATABRICKS_HOST: The Databricks workspace URL
     #     Example: https://your-workspace.cloud.databricks.com
+    #   - ADMIN_USER_EMAIL: The email address of the admin user for production
+    #     deployment permissions (used for CAN_MANAGE permission)
     #
     # Required Secrets:
     #   - DATABRICKS_CLIENT_ID: The service principal application (client) ID
@@ -40,6 +42,7 @@ jobs:
       DATABRICKS_AUTH_TYPE: github-oidc
       DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      ADMIN_USER_EMAIL: ${{ vars.ADMIN_USER_EMAIL }}
 
     steps:
       - uses: actions/checkout@v3
@@ -57,4 +60,7 @@ jobs:
       
       - name: Deploy asset bundle to production
         working-directory: ./speech_to_text_asset_bundle
-        run: databricks bundle deploy --target prod
+        run: |
+          databricks bundle deploy --target prod \
+            --var="databricks_host=${{ vars.DATABRICKS_HOST }}" \
+            --var="admin_user_email=${{ vars.ADMIN_USER_EMAIL }}"
