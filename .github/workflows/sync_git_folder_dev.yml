@@ -66,4 +66,4 @@ jobs:
         working-directory: ./speech_to_text_asset_bundle
         env:
           service_principal_id: service_principal_id=${{ vars.DATABRICKS_CLIENT_ID }}
-        run: databricks bundle deploy --target dev --var service_principal_id
+        run: databricks bundle deploy --target dev --var=service_principal_id
