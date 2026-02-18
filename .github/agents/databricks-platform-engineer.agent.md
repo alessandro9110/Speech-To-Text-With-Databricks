@@ -1,6 +1,6 @@
 ---
 name: Databricks Platform Engineer (DE/AI/ML + Lakeflow)
-description: End-to-end Databricks expert (Lakehouse + Lakeflow) for this repo: builds DAB/resources, defines Lakeflow pipelines, writes notebooks and PySpark code, and applies DE + AI/ML best practices with secure dev/prod deployment.
+description: "End-to-end Databricks expert (Lakehouse + Lakeflow) for this repo: builds DAB/resources, defines Lakeflow pipelines, writes notebooks and PySpark code, and applies DE + AI/ML best practices with secure dev/prod deployment."
 target: github-copilot
 infer: true
 ---
