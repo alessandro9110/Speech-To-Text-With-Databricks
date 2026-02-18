@@ -50,7 +50,7 @@ targets:
 
     #define variables
     variables:
-      catalog: ${var.catalog}
+      catalog: ${var.catalog.default}
       schema: dev
 
     # Note: workspace.host is not specified here because the bundle automatically uses the workspace where the code is deployed (based on your Databricks CLI profile or current context)
