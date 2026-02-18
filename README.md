@@ -7,8 +7,9 @@ A Databricks asset bundle solution for speech-to-text processing with automated 
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
 - [Initial Setup](#initial-setup)
-  - [1. Databricks Service Principal Setup](#1-databricks-service-principal-setup)
-  - [2. GitHub Actions Configuration](#2-github-actions-configuration)
+  - [1. Databricks Catalog Creation](#1-databricks-catalog-creation)
+  - [2. Databricks Service Principal Setup](#2-databricks-service-principal-setup)
+  - [3. GitHub Actions Configuration](#3-github-actions-configuration)
 - [Deployment](#deployment)
 - [Project Structure](#project-structure)
 - [Additional Documentation](#additional-documentation)
@@ -38,12 +39,27 @@ Before setting up this solution, ensure you have:
 
 ## Initial Setup
 
-### 1. Databricks Service Principal Creation
+### 1. Databricks Catalog Creation
+
+Before deploying the asset bundle, you must manually create the required catalog in Databricks:
+
+**Catalog Name:** **`text_to_speech`** (used by both Dev and Prod environments)
+
+**Steps to create a catalog:**
+1. Navigate to your Databricks workspace
+2. Go to **Data** in the left sidebar
+3. Click **Create Catalog**
+4. Enter the catalog name: `text_to_speech`
+5. Click **Create**
+
+**Note:** Ensure the service principal (configured in the next step) has the necessary permissions on this catalog.
+
+### 2. Databricks Service Principal Creation
 
 The solution uses a service principal for authentication between GitHub Actions and Databricks. 
 Follow these steps to create and configure it.
 
-#### Step 1.1: Create a Service Principal
+#### Step 2.1: Create a Service Principal
 
 Using the Databricks UI, create a service principal:
 Via the [Databricks UI](https://docs.databricks.com/administration-guide/users-groups/service-principals.html):
@@ -52,13 +68,13 @@ Via the [Databricks UI](https://docs.databricks.com/administration-guide/users-g
 3. Enter a name (e.g., "GitHub Actions Deploy Principal")
 4. Save and note the **Application ID (Client ID)**
 
-#### Step 1.2: Assign Workspace Permissions
+#### Step 2.2: Assign Workspace Permissions
 
 Grant the service principal access to your workspace:
 1. Go to your **Workspace settings** -> **Permissions**
 2. Add the service principal with appropriate permissions (e.g., "User" or "Admin")
 
-#### Step 1.3: Configure OIDC Federation Policy
+#### Step 2.3: Configure OIDC Federation Policy
 
 Federation policies allow your automated workloads running outside of Databricks to securely access Databricks APIs, using tokens provided by the workload runtime.
 
@@ -71,17 +87,17 @@ Create the Federation Policy in the Accoun Console:
 
 **Note:** the Federation Policy is only available into Account Console and not for Free Edition.
 
-#### Step 1.4: Create the Git Repo in the Dev environment
+#### Step 2.4: Create the Git Repo in the Dev environment
 In the Dev workspace, create the git repository in the path: Workspace/Shared/
 
 **Note**: This step is only required for the Dev environment, which uses Git folder synchronization. The Prod environment uses direct asset bundle deployment.
 
 
-### 2. GitHub Actions Configuration
+### 3. GitHub Actions Configuration
 
 Once the Databricks service principal is configured, set up GitHub Actions:
 
-#### Step 2.1: Create GitHub Environments
+#### Step 3.1: Create GitHub Environments
 
 Create both Dev and Prod environments:
 
@@ -91,7 +107,7 @@ Create both Dev and Prod environments:
 4. Click **Configure environment**
 5. Repeat steps 2-4 for the `Prod` environment
 
-#### Step 2.2: Configure Environment Variables
+#### Step 3.2: Configure Environment Variables
 
 In both "Dev" and "Prod" environments, add these variables:
 
@@ -99,15 +115,15 @@ In both "Dev" and "Prod" environments, add these variables:
 |--------------|-------------|---------------|
 | `DATABRICKS_HOST` | Your Databricks workspace URL | `https://xxxxxxxxxxxxxx.cloud.databricks.com` |
 
-#### Step 2.3: Configure Environment Secrets
+#### Step 3.3: Configure Environment Secrets
 
 In both "Dev" and "Prod" environments, add these secrets:
 
 | Secret Name | Description | Value |
 |------------|-------------|-------|
-| `DATABRICKS_CLIENT_ID` | Service principal Application ID (UUID) | The UUID from Step 1.1 |
+| `DATABRICKS_CLIENT_ID` | Service principal Application ID (UUID) | The UUID from Step 2.1 |
 
-#### Step 2.4: Configure OIDC Federation Policy for Prod
+#### Step 3.4: Configure OIDC Federation Policy for Prod
 
 Create an additional Federation Policy for the Prod environment:
 1. Go to **User Management** -> **Service principals** -> **GitHub Actions Deploy Principal**
