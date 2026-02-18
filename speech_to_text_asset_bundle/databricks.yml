@@ -2,7 +2,7 @@
 # See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
 bundle:
   name: speech_to_text_asset_bundle
-  uuid: 91fad0ff-e27e-4fdf-97f4-4b5e315f9c3d
+  uuid: 7c8f3a2e-9d4b-4e1f-a6c5-8b2d7e9f1a3c
 
 include:
   - resources/*.yml
@@ -13,46 +13,53 @@ artifacts:
     type: whl
     build: uv build --wheel
 
+
 # Variable declarations. These variables are assigned in the dev/prod targets below.
 variables:
   catalog:
     description: The catalog to use for Speech To Text With Databrikcs solution.
+    default: "speech_to_text_with_databricks"
   schema:
     description: The catalog to use for Speech To Text With Databrikcs solution.
-  databricks_host:
-    description: The Databricks workspace URL (e.g., https://your-workspace.cloud.databricks.com)
-  admin_user_email:
-    description: The email address of the admin user for production deployment permissions
+    default: dev
+  service_principal_id:
+    description: The Application ID (UUID) of the service principal for production
 
+
+# Targets define different deployment environments (dev, prod, etc.) with their specific configurations.
+# Each target can have different settings for run_as, presets, variables, and resource definitions.
+# Use 'databricks bundle deploy --target <target_name>' to deploy to a specific environment.
 targets:
   dev:
     # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
+
+    #define variables
+    variables:
+      catalog: speech_to_text_with_databricks
+      schema: dev
+
+    run_as:
+      service_principal_name: ${var.service_principal_id}
+    
+    mode: development
+    default: true
+
     presets:
-      name_prefix: ${workspace.current_user.short_name}_ # prefix all resource names with dev_user. Whne the 
+      name_prefix: ${workspace.current_user.short_name}_
       pipelines_development: true # set development to true for pipelines
       trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
       jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
       tags:
         department: finance
-    mode: development
-    default: true
-    workspace:
-      host: ${var.databricks_host}
-      root_path: /Workspace/Users/${workspace.current_user.user_name}/.bundle/${bundle.name}/${bundle.target}
-    
-    #define variables
-    variables:
-      catalog: speech_to_text
-      schema: dev
-    
-    # define resouces like: schemas etc.
-    resources:
-      schemas:
-        dev:
-          name: dev
-          catalog_name: speech_to_text
-          comment: 'Schema for development'
+        
 
+
+
+    # Note: workspace.host is not specified here because the bundle automatically uses the workspace where the code is deployed (based on your Databricks CLI profile or current context)
+    workspace:
+      #host
+      root_path: ~/Shared/.bundle/${bundle.name}/${bundle.target}
+    
 
   prod:
     presets:
@@ -65,10 +72,10 @@ targets:
 
     mode: production
 
+    # Note: workspace.host is not specified here because the bundle automatically uses the workspace where the code is deployed (based on your Databricks CLI profile or current context)
     workspace:
-      host: ${var.databricks_host}
-      # We explicitly deploy to /Workspace/Shared to make sure we only have a single copy.
-      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+      #host
+      root_path: ~/Shared/.bundle/${bundle.name}/${bundle.target}
 
     variables:
       catalog: speech_to_text
@@ -83,6 +90,6 @@ targets:
           comment: 'Schema for development'
           
     
-    permissions:
-      - user_name: ${var.admin_user_email}
-        level: CAN_MANAGE
+    #permissions:
+     # - user_name: ${var.admin_user_email}
+      #  level: CAN_MANAGE

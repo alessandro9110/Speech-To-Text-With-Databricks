@@ -1,4 +1,4 @@
-name: Sync Git Folder Dev
+name: Sync Git Folder and Deploy Dev
 
 concurrency: dev_environment
 
@@ -42,8 +42,25 @@ jobs:
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
 
     steps:
+      
       - uses: actions/checkout@v3
-      - uses: databricks/setup-cli@main
+        name: Check Out Branch
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install uv
+        run: pip install uv
+      
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+        
       - name: Update git folder
         # Set your workspace path and branch name here
         run: databricks repos update /Workspace/Shared/Speech-To-Text-With-Databricks --branch dev
+        
+      - name: Deploy asset bundle to dev
+        working-directory: ./speech_to_text_asset_bundle
+        run: databricks bundle deploy --target dev --var="service_principal_id=${{ secrets.DATABRICKS_CLIENT_ID }}"
