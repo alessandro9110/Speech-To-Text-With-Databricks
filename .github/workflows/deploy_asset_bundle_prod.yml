@@ -1,12 +1,12 @@
-name: Sync Git Folder Dev
+name: Deploy Asset Bundle Prod
 
-concurrency: dev_environment
+concurrency: prod_environment
 
 on:
   push:
     branches:
-      # Set your base branch name here
-      - dev
+      # Triggers on push to main branch
+      - main
 
 permissions:
   # These permissions are required for workload identity federation.
@@ -16,13 +16,13 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: 'Update git folder'
-    environment: Dev
+    name: 'Deploy Asset Bundle to Production'
+    environment: Prod
     # ========================================================================
     # REQUIRED ENVIRONMENT CONFIGURATION
     # ========================================================================
     # The following variables and secrets must be configured in the GitHub
-    # repository settings under: Settings > Environments > Dev
+    # repository settings under: Settings > Environments > Prod
     #
     # Required Variables:
     #   - DATABRICKS_HOST: The Databricks workspace URL
@@ -41,6 +41,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: databricks/setup-cli@main
-      - name: Update git folder
-        # Set your workspace path and branch name here
-        run: databricks repos update /Workspace/Shared/Speech-To-Text-With-Databricks --branch dev
+      - name: Deploy asset bundle to production
+        working-directory: ./speech_to_text_asset_bundle
+        run: databricks bundle deploy --target prod

@@ -1,229 +1,255 @@
-# Speech-To-Text con Databricks
+# Speech-To-Text-With-Databricks
 
-## 📝 Descrizione del Progetto
+A Databricks asset bundle solution for speech-to-text processing with automated deployment via GitHub Actions.
 
-Questo progetto implementa una soluzione avanzata di **Speech-to-Text** (trascrizione vocale automatica) utilizzando Databricks come piattaforma di elaborazione dati. La soluzione sfrutta modelli di machine learning open source, in particolare quelli disponibili tramite Hugging Face, per trasformare file audio in testo con alta precisione e scalabilità.
+## Table of Contents
 
-### Obiettivi
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [Initial Setup](#initial-setup)
+  - [1. Databricks Service Principal Setup](#1-databricks-service-principal-setup)
+  - [2. GitHub Actions Configuration](#2-github-actions-configuration)
+- [Deployment](#deployment)
+- [Project Structure](#project-structure)
+- [Additional Documentation](#additional-documentation)
 
-La soluzione tecnologica ha l'obiettivo di:
-- Fornire una pipeline scalabile per la trascrizione automatica di file audio
-- Utilizzare modelli open source all'avanguardia per il riconoscimento vocale
-- Integrare facilmente con l'ecosistema Databricks per elaborazioni su larga scala
-- Supportare diverse lingue e formati audio
-- Offrire un'architettura modulare e facilmente estensibile
+## Overview
 
-## 🏗️ Architettura
+This repository contains a Databricks Asset Bundle for speech-to-text processing. The solution uses:
 
-Il progetto è strutturato come **Databricks Asset Bundle**, che fornisce un modo standardizzato per organizzare e distribuire risorse Databricks.
+- **Databricks Asset Bundles** for infrastructure-as-code deployment
+- **GitHub Actions** for CI/CD automation with OIDC authentication
+- **Service Principal** for secure, token-less authentication between GitHub and Databricks
 
-### Componenti Principali
+## Prerequisites
 
-- **Databricks**: Piattaforma unificata di analytics e AI per l'elaborazione distribuita
-- **Hugging Face Transformers**: Libreria di modelli pre-addestrati per Speech-to-Text
-- **Delta Live Tables (DLT)**: Per la gestione di pipeline ETL affidabili e scalabili
-- **Unity Catalog**: Per la gestione centralizzata di dati e governance
+Before setting up this solution, ensure you have:
 
-### Stack Tecnologico
+1. **Databricks Account**
+   - Account administrator access (Account Console)
+   - A Databricks workspace (AWS, Azure, or GCP)
 
-- **Python 3.10+**: Linguaggio principale per lo sviluppo
-- **PySpark**: Per l'elaborazione distribuita dei dati
-- **Modelli Open Source**: Whisper, Wav2Vec2, e altri modelli da Hugging Face
-- **Databricks Asset Bundles**: Per il deployment e la gestione delle risorse
+2. **GitHub Repository**
+   - Administrative access to configure environments and secrets
+   - Repository: `alessandro9110/Speech-To-Text-With-Databricks`
 
-## ✨ Caratteristiche Principali
+3. **Databricks CLI (Optional)**
+   - Install: `pip install databricks-cli` or use [Databricks CLI installation guide](https://docs.databricks.com/dev-tools/cli/index.html)
 
-- ✅ **Elaborazione distribuita**: Sfrutta la potenza di Spark per processare grandi volumi di audio
-- ✅ **Modelli pre-addestrati**: Utilizzo di modelli all'avanguardia da Hugging Face
-- ✅ **Pipeline modulari**: Architettura basata su Delta Live Tables per pipeline affidabili
-- ✅ **Multi-formato**: Supporto per diversi formati audio (WAV, MP3, FLAC, etc.)
-- ✅ **Multi-lingua**: Capacità di trascrivere audio in diverse lingue
-- ✅ **Scalabilità**: Elaborazione parallela di migliaia di file audio
-- ✅ **Monitoring e governance**: Integrazione con Unity Catalog per tracciabilità completa
+## Initial Setup
 
-## 📋 Prerequisiti
+### 1. Databricks Service Principal Creation
 
-Prima di iniziare, assicurati di avere:
+The solution uses a service principal for authentication between GitHub Actions and Databricks. 
+Follow these steps to create and configure it.
 
-- **Databricks Workspace**: Account Databricks con accesso a workspace
-- **Python 3.10 o superiore**: Per lo sviluppo locale
-- **Databricks CLI**: Per il deployment degli asset bundle
-- **UV Package Manager**: (opzionale) Per la gestione delle dipendenze Python
-- **Git**: Per il controllo versione del codice
+#### Step 1.1: Create a Service Principal
 
-### Permessi Richiesti
+Using the Databricks UI, create a service principal:
+Via the [Databricks UI](https://docs.databricks.com/administration-guide/users-groups/service-principals.html):
+1. Navigate to **Account Console** -> **User management** -> **Service principals**
+2. Click **Add service principal**
+3. Enter a name (e.g., "GitHub Actions Deploy Principal")
+4. Save and note the **Application ID (Client ID)**
 
-- Permessi di creazione di cluster su Databricks
-- Accesso a Unity Catalog per la gestione di cataloghi e schemi
-- Permessi di scrittura nello workspace Databricks
+#### Step 1.2: Assign Workspace Permissions
 
-## 🚀 Installazione e Setup
+Grant the service principal access to your workspace:
+1. Go to your **Workspace settings** -> **Permissions**
+2. Add the service principal with appropriate permissions (e.g., "User" or "Admin")
 
-### 1. Clonare il Repository
+#### Step 1.3: Configure OIDC Federation Policy
 
-```bash
-git clone https://github.com/alessandro9110/Speech-To-Text-With-Databricks.git
-cd Speech-To-Text-With-Databricks/speech_to_text_asset_bundle
-```
+Federation policies allow your automated workloads running outside of Databricks to securely access Databricks APIs, using tokens provided by the workload runtime.
 
-### 2. Installare le Dipendenze
+Create the Federation Policy in the Accoun Console:
+1. Go to **User Managment** -> **Service principals** -> **GitHub Actions Deploy Principal**
+2. Click on **Create Policy** and pass the following values:
+   . Issuer URL: https://token.actions.githubusercontent.com
+   . Subject: repo:alessandro9110/Speech-To-Text-With-Databricks:environment:Dev (if you Forked or CLoned the repo, use your account_id instead of alessandro9110)
+   . Audiences: Service Principal UUID
 
-```bash
-# Usando uv (consigliato)
-pip install uv
-uv sync
+**Note:** the Federation Policy is only available into Account Console and not for Free Edition.
 
-# Oppure usando pip
-pip install -e ".[dev]"
-```
+#### Step 1.4: Create the Git Repo in the Dev environment
+In the Dev workspace, create the git repository in the path: Workspace/Shared/
 
-### 3. Configurare Databricks CLI
+**Note**: This step is only required for the Dev environment, which uses Git folder synchronization. The Prod environment uses direct asset bundle deployment.
 
-```bash
-databricks configure
-```
 
-Inserisci i dettagli del tuo workspace Databricks quando richiesto.
+### 2. GitHub Actions Configuration
 
-### 4. Personalizzare la Configurazione
+Once the Databricks service principal is configured, set up GitHub Actions:
 
-Modifica il file `databricks.yml` per adattarlo al tuo ambiente:
+#### Step 2.1: Create GitHub Environments
+
+Create both Dev and Prod environments:
+
+1. Go to your repository **Settings** > **Environments**
+2. Click **New environment**
+3. Name it: `Dev`
+4. Click **Configure environment**
+5. Repeat steps 2-4 for the `Prod` environment
+
+#### Step 2.2: Configure Environment Variables
+
+In both "Dev" and "Prod" environments, add these variables:
+
+| Variable Name | Description | Example Value |
+|--------------|-------------|---------------|
+| `DATABRICKS_HOST` | Your Databricks workspace URL | `https://xxxxxxxxxxxxxx.cloud.databricks.com` |
+
+#### Step 2.3: Configure Environment Secrets
+
+In both "Dev" and "Prod" environments, add these secrets:
+
+| Secret Name | Description | Value |
+|------------|-------------|-------|
+| `DATABRICKS_CLIENT_ID` | Service principal Application ID (UUID) | The UUID from Step 1.1 |
+
+#### Step 2.4: Configure OIDC Federation Policy for Prod
+
+Create an additional Federation Policy for the Prod environment:
+1. Go to **User Management** -> **Service principals** -> **GitHub Actions Deploy Principal**
+2. Click on **Create Policy** and pass the following values:
+   - Issuer URL: https://token.actions.githubusercontent.com
+   - Subject: repo:alessandro9110/Speech-To-Text-With-Databricks:environment:Prod
+   - Audiences: Service Principal UUID
+
+**📖 For detailed GitHub Actions environment setup instructions for the Dev environment**, see [.github/ENVIRONMENT_SETUP.md](.github/ENVIRONMENT_SETUP.md). The Prod environment follows the same pattern, plus the additional policy configuration described above.
+
+## Deployment
+
+### Automated Deployment (GitHub Actions)
+
+The repository includes two GitHub Actions workflows for automated deployment:
+
+#### Development Deployment
+Automatically updates the Git folder in Databricks when code is pushed to the `dev` branch:
 
 ```yaml
-variables:
-  catalog: <tuo_catalog>
-  schema: <tuo_schema>
-
-workspace:
-  host: <tuo_workspace_url>
+# Workflow: .github/workflows/sync_git_folder_dev.yml
+# Triggers: On push to 'dev' branch
+# Environment: Dev
+# Authentication: GitHub OIDC → Databricks Service Principal
 ```
 
-## 📦 Deployment
+**What happens during deployment:**
+1. Code is pushed to the `dev` branch
+2. GitHub Actions workflow triggers
+3. GitHub generates a short-lived OIDC token
+4. Token is exchanged for Databricks access token via the service principal
+5. Databricks repositories are updated with the latest code
 
-### Ambiente di Sviluppo
+#### Production Deployment
+Automatically deploys the asset bundle to production when code is pushed to the `main` branch:
 
-Per deployare nell'ambiente di sviluppo:
+```yaml
+# Workflow: .github/workflows/deploy_asset_bundle_prod.yml
+# Triggers: On push to 'main' branch
+# Environment: Prod
+# Authentication: GitHub OIDC → Databricks Service Principal
+```
+
+**What happens during production deployment:**
+1. Code is pushed to the `main` branch
+2. GitHub Actions workflow triggers
+3. GitHub generates a short-lived OIDC token
+4. Token is exchanged for Databricks access token via the service principal
+5. Asset bundle is deployed to the production target using `databricks bundle deploy --target prod`
+
+### Manual Deployment (Databricks CLI)
+
+You can also deploy manually using the Databricks CLI:
 
 ```bash
-databricks bundle deploy -t dev
+# Navigate to the asset bundle directory
+cd speech_to_text_asset_bundle
+
+# Deploy to dev environment with variables
+databricks bundle deploy --target dev --var="databricks_host=https://your-workspace.cloud.databricks.com"
+
+# Deploy to prod environment with variables
+databricks bundle deploy --target prod \
+  --var="databricks_host=https://your-workspace.cloud.databricks.com" \
+  --var="admin_user_email=your-email@example.com"
 ```
 
-### Ambiente di Produzione
+**Note:** For local deployments, you can create a `databricks.yml.local` file with your configuration to avoid passing variables on the command line. See [speech_to_text_asset_bundle/README.md](speech_to_text_asset_bundle/README.md) for details.
 
-Per deployare in produzione:
+### Deploy Using Databricks UI
 
-```bash
-databricks bundle deploy -t prod
-```
+For workspace-based deployments:
+1. Open the Databricks workspace
+2. Navigate to the asset bundle
+3. Click the **deployment rocket** 🚀 in the left sidebar
+4. Click **Deploy**
 
-## 💻 Utilizzo
+For more details, see [speech_to_text_asset_bundle/README.md](speech_to_text_asset_bundle/README.md)
 
-### Eseguire una Pipeline
-
-1. **Tramite UI Databricks**:
-   - Naviga alla sezione Workflows nel tuo workspace
-   - Trova la pipeline `speech_to_text_asset_bundle_etl`
-   - Clicca su "Run"
-
-2. **Tramite CLI**:
-   ```bash
-   databricks bundle run speech_to_text_asset_bundle_etl -t dev
-   ```
-
-### Eseguire un Job
-
-```bash
-databricks bundle run sample_job -t dev
-```
-
-### Notebook di Esempio
-
-Il progetto include un notebook di esempio (`sample_notebook.ipynb`) che mostra come utilizzare le funzionalità della libreria.
-
-## 📁 Struttura del Progetto
+## Project Structure
 
 ```
-speech_to_text_asset_bundle/
-├── databricks.yml                    # Configurazione principale dell'asset bundle
-├── pyproject.toml                    # Dipendenze Python e configurazione del progetto
-├── resources/                        # Definizioni delle risorse Databricks
-│   ├── sample_job.job.yml           # Definizione job di esempio
-│   └── speech_to_text_asset_bundle_etl.pipeline.yml  # Definizione pipeline DLT
-├── src/
-│   ├── sample_notebook.ipynb        # Notebook di esempio
-│   ├── speech_to_text_asset_bundle/ # Package Python principale
-│   │   ├── __init__.py
-│   │   ├── main.py                  # Entry point principale
-│   │   └── taxis.py                 # Moduli di esempio
-│   └── speech_to_text_asset_bundle_etl/  # Pipeline ETL
-│       ├── README.md
-│       └── transformations/         # Trasformazioni DLT
-│           ├── sample_trips_speech_to_text_asset_bundle.py
-│           └── sample_zones_speech_to_text_asset_bundle.py
-└── tests/                           # Test suite
-    ├── conftest.py
-    └── sample_taxis_test.py
+Speech-To-Text-With-Databricks/
+├── .github/
+│   ├── workflows/
+│   │   ├── sync_git_folder_dev.yml          # Dev environment Git sync workflow
+│   │   └── deploy_asset_bundle_prod.yml     # Prod environment deployment workflow
+│   ├── ENVIRONMENT_SETUP.md                 # Detailed GitHub Actions setup
+│   └── RIEPILOGO.md                         # Configuration summary
+├── speech_to_text_asset_bundle/
+│   ├── databricks.yml                       # Asset bundle configuration
+│   ├── resources/                           # Job and pipeline definitions
+│   ├── src/                                 # Source code and transformations
+│   └── README.md                            # Asset bundle documentation
+└── README.md                                # This file
 ```
 
-## 🔧 Sviluppo
+## Additional Documentation
 
-### Eseguire i Test
+- **[GitHub Actions Environment Setup](.github/ENVIRONMENT_SETUP.md)** - Detailed guide for configuring GitHub Actions
+- **[Configuration Summary](.github/RIEPILOGO.md)** - Quick reference for environment variables and secrets
+- **[Asset Bundle Documentation](speech_to_text_asset_bundle/README.md)** - Details on managing the Databricks asset bundle
+- **[Databricks Asset Bundles](https://docs.databricks.com/dev-tools/bundles/index.html)** - Official Databricks documentation
+- **[GitHub OIDC in Databricks](https://docs.databricks.com/dev-tools/auth/provider-github.html)** - Official guide for GitHub Actions integration
 
-```bash
-pytest tests/
-```
+## Troubleshooting
 
-### Linting del Codice
+### Deployment Fails with Authentication Error
 
-```bash
-ruff check .
-```
+**Issue**: GitHub Actions workflow fails with authentication errors
 
-### Formattazione del Codice
+**Solution**:
+1. Verify the service principal federation policy is correctly configured for the target environment (Dev or Prod)
+2. Ensure `DATABRICKS_CLIENT_ID` matches the service principal's Application ID
+3. Check that the `subject` in the federation policy matches:
+   - Dev: `repo:alessandro9110/Speech-To-Text-With-Databricks:environment:Dev`
+   - Prod: `repo:alessandro9110/Speech-To-Text-With-Databricks:environment:Prod`
+4. Confirm the service principal has necessary workspace permissions
 
-```bash
-ruff format .
-```
+### Cannot Update Git Folder (Dev Environment)
 
-## 🤝 Contribuire
+**Issue**: Dev workflow fails to update the Databricks Git folder
 
-I contributi sono benvenuti! Per contribuire:
+**Solution**:
+1. Verify the service principal has `CAN_MANAGE` permission on the target folder
+2. Ensure the workspace path in the workflow matches your workspace structure
+3. Check that the repository is properly linked in Databricks
 
-1. Fai un fork del repository
-2. Crea un branch per la tua feature (`git checkout -b feature/AmazingFeature`)
-3. Committa le tue modifiche (`git commit -m 'Add some AmazingFeature'`)
-4. Pusha il branch (`git push origin feature/AmazingFeature`)
-5. Apri una Pull Request
+### Asset Bundle Deployment Fails (Prod Environment)
 
-## 📚 Risorse e Riferimenti
+**Issue**: Prod workflow fails to deploy the asset bundle
 
-### Databricks
-- [Documentazione Databricks Asset Bundles](https://docs.databricks.com/dev-tools/bundles/index.html)
-- [Delta Live Tables](https://docs.databricks.com/delta-live-tables/index.html)
-- [Unity Catalog](https://docs.databricks.com/data-governance/unity-catalog/index.html)
+**Solution**:
+1. Verify the service principal has appropriate permissions for asset bundle deployment
+2. Check the `databricks.yml` configuration for the `prod` target
+3. Ensure the workspace path specified in the prod target is accessible
+4. Review the workflow logs for specific error messages
 
-### Hugging Face
-- [Hugging Face Transformers](https://huggingface.co/docs/transformers/index)
-- [Modelli Speech-to-Text](https://huggingface.co/models?pipeline_tag=automatic-speech-recognition)
-- [Whisper by OpenAI](https://huggingface.co/openai/whisper-large-v3)
-
-### Machine Learning per Speech-to-Text
-- [Wav2Vec 2.0](https://ai.facebook.com/blog/wav2vec-20-learning-the-structure-of-speech-from-raw-audio/)
-- [Documentazione Whisper](https://github.com/openai/whisper)
-
-## 📄 Licenza
-
-Questo progetto è distribuito sotto licenza MIT. Vedi il file `LICENSE` per maggiori dettagli.
-
-## 👥 Autori
-
-- Alessandro Armillotta - [a.armillotta91@gmail.com](mailto:a.armillotta91@gmail.com)
-
-## 🐛 Segnalazione Bug e Feature Request
-
-Per segnalare bug o richiedere nuove funzionalità, apri una issue su GitHub:
-https://github.com/alessandro9110/Speech-To-Text-With-Databricks/issues
+### For more troubleshooting help, see the [ENVIRONMENT_SETUP.md](.github/ENVIRONMENT_SETUP.md#troubleshooting) documentation.
 
 ---
 
-**Nota**: Questo progetto è in fase di sviluppo attivo. Le funzionalità e l'API potrebbero cambiare nelle versioni future.
+## License
+
+See [LICENSE](LICENSE) for details.
