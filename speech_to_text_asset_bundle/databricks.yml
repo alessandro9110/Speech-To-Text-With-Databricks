@@ -85,6 +85,6 @@ targets:
           comment: 'Schema for development'
           
     
-    permissions:
-      - user_name: ${var.admin_user_email}
-        level: CAN_MANAGE
+    #permissions:
+     # - user_name: ${var.admin_user_email}
+      #  level: CAN_MANAGE
