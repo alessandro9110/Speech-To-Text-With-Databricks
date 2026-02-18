@@ -35,7 +35,7 @@ targets:
     # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
 
     run_as:
-      user_name: ${workspace.current_user.short_name}
+      service_principal_name: ${var.service_principal_id}
     
     mode: development
     default: true
