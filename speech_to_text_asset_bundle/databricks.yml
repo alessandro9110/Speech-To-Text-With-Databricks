@@ -19,8 +19,8 @@ variables:
     description: The catalog to use for Speech To Text With Databrikcs solution.
   schema:
     description: The catalog to use for Speech To Text With Databrikcs solution.
-  admin_user_email:
-    description: The email address of the admin user for production deployment permissions
+  #admin_user_email:
+    #description: The email address of the admin user for production deployment permissions
 
 targets:
   dev:
