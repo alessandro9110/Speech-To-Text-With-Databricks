@@ -166,12 +166,16 @@ You can also deploy manually using the Databricks CLI:
 # Navigate to the asset bundle directory
 cd speech_to_text_asset_bundle
 
-# Deploy to dev environment
-databricks bundle deploy --target dev
+# Deploy to dev environment with variables
+databricks bundle deploy --target dev --var="databricks_host=https://your-workspace.cloud.databricks.com"
 
-# Deploy to prod environment
-databricks bundle deploy --target prod
+# Deploy to prod environment with variables
+databricks bundle deploy --target prod \
+  --var="databricks_host=https://your-workspace.cloud.databricks.com" \
+  --var="admin_user_email=your-email@example.com"
 ```
+
+**Note:** For local deployments, you can create a `databricks.yml.local` file with your configuration to avoid passing variables on the command line. See [speech_to_text_asset_bundle/README.md](speech_to_text_asset_bundle/README.md) for details.
 
 ### Deploy Using Databricks UI
 
