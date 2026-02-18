@@ -56,7 +56,7 @@ jobs:
         run: pip install uv
       
       - name: Install Databricks CLI
-        run: pip install databricks-cli
+        uses: databricks/setup-cli@main
         
       - name: Update git folder
         # Set your workspace path and branch name here
