@@ -8,6 +8,7 @@ on:
       # Set your base branch name here
       - dev
     paths:
+      # triggers on folders
       - 'speech_to_text_asset_bundle/**'
       - '.github/workflows/**'
 
@@ -43,29 +44,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        name: Check Out Branch
+        
       - uses: databricks/setup-cli@main
+        name: Install Dabricks CLI
+        
       - name: Update git folder
         # Set your workspace path and branch name here
         run: databricks repos update /Workspace/Shared/Speech-To-Text-With-Databricks --branch dev
-      
-      # ========================================================================
-      # DEPLOY ASSET BUNDLE TO DEV ENVIRONMENT
-      # ========================================================================
-      # This step deploys the Databricks Asset Bundle to the dev environment.
-      # The deployment uses the 'dev' target defined in databricks.yml which:
-      #   - Uses variables: catalog=speech_to_text, schema=dev
-      #   - Sets development mode with name prefixes based on current user
-      #   - Creates resources in /Workspace/Shared/.bundle/speech_to_text_asset_bundle/dev
-      #   - Pauses triggers and sets jobs to development configuration
-      # 
-      # Required inputs (configured via GitHub Environment 'Dev'):
-      #   - DATABRICKS_HOST: Workspace URL from vars.DATABRICKS_HOST
-      #   - DATABRICKS_CLIENT_ID: Service principal ID from secrets.DATABRICKS_CLIENT_ID
-      #   - DATABRICKS_AUTH_TYPE: Set to 'github-oidc' for OIDC authentication
-      #
-      # The databricks_host variable is explicitly passed to the bundle to ensure
-      # proper workspace configuration during deployment.
-      # ========================================================================
+        
       - name: Deploy asset bundle to dev
         working-directory: ./speech_to_text_asset_bundle
         run: databricks bundle deploy --target dev
