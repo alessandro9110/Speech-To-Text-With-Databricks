@@ -1,4 +1,4 @@
-name: Sync Git Folder Dev
+name: Sync Git Folder and Deploy Dev
 
 concurrency: dev_environment
 
@@ -43,11 +43,20 @@ jobs:
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
 
     steps:
+      
       - uses: actions/checkout@v3
         name: Check Out Branch
         
-      - uses: databricks/setup-cli@main
-        name: Install Dabricks CLI
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install uv
+        run: pip install uv
+      
+      - name: Install Databricks CLI
+        run: pip install databricks-cli
         
       - name: Update git folder
         # Set your workspace path and branch name here
