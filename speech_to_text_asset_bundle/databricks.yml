@@ -18,7 +18,7 @@ artifacts:
 variables:
   catalog:
     description: The catalog to use for Speech To Text With Databrikcs solution.
-    default: "speech_to_text"
+    default: speech_to_text
   schema:
     description: The catalog to use for Speech To Text With Databrikcs solution.
     default: default
