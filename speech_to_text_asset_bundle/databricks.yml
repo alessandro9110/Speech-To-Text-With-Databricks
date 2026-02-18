@@ -35,8 +35,8 @@ targets:
 
     #define variables
     variables:
-      catalog: ${var.catalog.default}
-      schema: ${var.schema.default}
+      catalog: ${var.catalog}
+      schema: ${var.schema}
 
     run_as:
       service_principal_name: ${var.service_principal_id}
@@ -61,8 +61,8 @@ targets:
     resources:
       schemas:
         dev:
-          name: ${var.schema.default}
-          catalog_name: ${var.catalog.default}
+          name: ${var.schema}
+          catalog_name: ${var.catalog}
           comment: 'Schema for development of speech to text'
     
 
