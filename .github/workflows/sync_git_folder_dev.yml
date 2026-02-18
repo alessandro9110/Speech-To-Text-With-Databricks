@@ -8,7 +8,6 @@ on:
       # Set your base branch name here
       - dev
     paths:
-      # triggers on folders
       - 'speech_to_text_asset_bundle/**'
       - '.github/workflows/**'
 
