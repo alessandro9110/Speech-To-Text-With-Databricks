@@ -33,11 +33,6 @@ targets:
   dev:
     # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
 
-    #define variables
-    variables:
-      catalog: ${var.catalog}
-      schema: ${var.schema}
-
     run_as:
       service_principal_name: ${var.service_principal_id}
     
