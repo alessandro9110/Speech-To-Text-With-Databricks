@@ -2,7 +2,7 @@
 # See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
 bundle:
   name: speech_to_text_asset_bundle
-  uuid: 91fad0ff-e27e-4fdf-97f4-4b5e315f9c3d
+  uuid: 7c8f3a2e-9d4b-4e1f-a6c5-8b2d7e9f1a3c
 
 include:
   - resources/*.yml
@@ -19,8 +19,6 @@ variables:
     description: The catalog to use for Speech To Text With Databrikcs solution.
   schema:
     description: The catalog to use for Speech To Text With Databrikcs solution.
-  databricks_host:
-    description: The Databricks workspace URL (e.g., https://your-workspace.cloud.databricks.com)
   admin_user_email:
     description: The email address of the admin user for production deployment permissions
 
@@ -36,15 +34,18 @@ targets:
         department: finance
     mode: development
     default: true
-    workspace:
-      host: ${var.databricks_host}
-      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
-    
+
     #define variables
     variables:
       catalog: speech_to_text
       schema: dev
-      databricks_host: TO_CHANGE##
+
+    # Note: workspace.host is not specified here because the bundle automatically uses the workspace where the code is deployed (based on your Databricks CLI profile or current context)
+    workspace:
+      #host
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+    
+
     
     # define resouces like: schemas etc.
     resources:
@@ -66,9 +67,9 @@ targets:
 
     mode: production
 
+    # Note: workspace.host is not specified here because the bundle automatically uses the workspace where the code is deployed (based on your Databricks CLI profile or current context)
     workspace:
-      host: ${var.databricks_host}
-      # We explicitly deploy to /Workspace/Shared to make sure we only have a single copy.
+      #host
       root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
 
     variables:
