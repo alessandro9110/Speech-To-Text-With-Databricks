@@ -24,6 +24,7 @@ variables:
     default: dev
   service_principal_id:
     description: The Application ID (UUID) of the service principal for production
+    default: ""
 
 
 # Targets define different deployment environments (dev, prod, etc.) with their specific configurations.
@@ -37,10 +38,9 @@ targets:
     variables:
       catalog: speech_to_text_with_databricks
       schema: dev
-      service_principal_id: ADD_HERE_THE_SP
 
     run_as:
-      service_principal_name: ${var.service_principal_id}
+      service_principal_name: ${var.service_principal_id.default}
     
     mode: development
     default: true
