@@ -68,4 +68,4 @@ jobs:
       # ========================================================================
       - name: Deploy asset bundle to dev
         working-directory: ./speech_to_text_asset_bundle
-        run: databricks bundle deploy --target dev --var="databricks_host=${DATABRICKS_HOST}"
+        run: databricks bundle deploy --target dev
