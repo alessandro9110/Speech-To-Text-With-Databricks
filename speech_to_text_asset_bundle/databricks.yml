@@ -33,6 +33,12 @@ targets:
   dev:
     # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
 
+    #define variables
+    variables:
+      catalog: speech_to_text_with_databricks
+      schema: dev
+      service_principal_id: ADD_HERE_THE_SP
+
     run_as:
       service_principal_name: ${var.service_principal_id}
     
@@ -48,10 +54,7 @@ targets:
         department: finance
         
 
-    #define variables
-    variables:
-      catalog: speech_to_text_with_databricks
-      schema: dev
+
 
     # Note: workspace.host is not specified here because the bundle automatically uses the workspace where the code is deployed (based on your Databricks CLI profile or current context)
     workspace:
