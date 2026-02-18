@@ -64,4 +64,4 @@ jobs:
         
       - name: Deploy asset bundle to dev
         working-directory: ./speech_to_text_asset_bundle
-        run: databricks bundle deploy --target dev --var="service_principal_id=${{ vars.DATABRICKS_CLIENT_ID }}"
+        run: databricks bundle deploy --target dev --var="service_principal_id=${{ secrets.DATABRICKS_CLIENT_ID }}"
