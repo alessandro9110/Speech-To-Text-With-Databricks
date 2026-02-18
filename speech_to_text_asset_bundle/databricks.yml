@@ -18,7 +18,7 @@ artifacts:
 variables:
   catalog:
     description: The catalog to use for Speech To Text With Databrikcs solution.
-    default: "text_to_speech"
+    default: "speech_to_text_with_databricks"
   schema:
     description: The catalog to use for Speech To Text With Databrikcs solution.
     default: dev
@@ -35,7 +35,7 @@ targets:
 
     #define variables
     variables:
-      catalog: text_to_speech
+      catalog: speech_to_text_with_databricks
       schema: dev
 
     run_as:
@@ -78,7 +78,7 @@ targets:
       root_path: ~/Shared/.bundle/${bundle.name}/${bundle.target}
 
     variables:
-      catalog: text_to_speech
+      catalog: speech_to_text
       schema: prod
     
         # define resouces like: schemas etc.
@@ -86,7 +86,7 @@ targets:
       schemas:
         prod:
           name: prod
-          catalog_name: text_to_speech
+          catalog_name: speech_to_text
           comment: 'Schema for development'
           
     
