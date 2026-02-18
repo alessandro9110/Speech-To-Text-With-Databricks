@@ -27,7 +27,7 @@ To complete the configuration, you need to go to the GitHub repository settings 
 
 | Name | Value to Enter |
 |------|----------------|
-| `DATABRICKS_HOST` | Your Databricks workspace URL (e.g., `https://dbc-3cceb672-6c68.cloud.databricks.com`) |
+| `DATABRICKS_HOST` | Your Databricks workspace URL (e.g., `https://your-workspace.cloud.databricks.com`) |
 
 ### 3. Add Secrets in the "Dev" Environment
 

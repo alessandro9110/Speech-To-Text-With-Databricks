@@ -26,7 +26,7 @@ jobs:
     #
     # Required Variables:
     #   - DATABRICKS_HOST: The Databricks workspace URL
-    #     Example: https://dbc-3cceb672-6c68.cloud.databricks.com
+    #     Example: https://your-workspace.cloud.databricks.com
     #
     # Required Secrets:
     #   - DATABRICKS_CLIENT_ID: The service principal application (client) ID

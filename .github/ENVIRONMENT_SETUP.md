@@ -27,7 +27,7 @@ In the "Dev" environment, add the following **Environment variables**:
 
 | Variable Name | Description | Example |
 |---------------|-------------|---------|
-| `DATABRICKS_HOST` | The Databricks workspace URL | `https://dbc-3cceb672-6c68.cloud.databricks.com` |
+| `DATABRICKS_HOST` | The Databricks workspace URL | `https://your-workspace.cloud.databricks.com` |
 
 **How to add:**
 1. In the "Dev" environment configuration page

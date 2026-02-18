@@ -1,0 +1,25 @@
+# Example configuration file for databricks.yml variables
+# Copy this file and set the appropriate values for your environment
+
+# For local development, you can set these variables in a databricks.yml.local file
+# or export them as environment variables with the DATABRICKS_ prefix
+
+# Example for dev target:
+# databricks bundle deploy --target dev --var="databricks_host=https://your-workspace.cloud.databricks.com"
+
+# Example for prod target:
+# databricks bundle deploy --target prod \
+#   --var="databricks_host=https://your-workspace.cloud.databricks.com" \
+#   --var="admin_user_email=your-email@example.com"
+
+# Alternatively, create a databricks.yml.local file (ignored by git) with:
+#
+# targets:
+#   dev:
+#     variables:
+#       databricks_host: https://your-workspace.cloud.databricks.com
+#   
+#   prod:
+#     variables:
+#       databricks_host: https://your-workspace.cloud.databricks.com
+#       admin_user_email: your-email@example.com

@@ -19,6 +19,10 @@ variables:
     description: The catalog to use for Speech To Text With Databrikcs solution.
   schema:
     description: The catalog to use for Speech To Text With Databrikcs solution.
+  databricks_host:
+    description: The Databricks workspace URL (e.g., https://your-workspace.cloud.databricks.com)
+  admin_user_email:
+    description: The email address of the admin user for production deployment permissions
 
 targets:
   dev:
@@ -33,8 +37,8 @@ targets:
     mode: development
     default: true
     workspace:
-      host: https://dbc-3cceb672-6c68.cloud.databricks.com
-      root_path: /Workspace/Users/a.armillotta91@gmail.com/.bundle/${bundle.name}/${bundle.target}
+      host: ${var.databricks_host}
+      root_path: /Workspace/Users/${workspace.current_user.user_name}/.bundle/${bundle.name}/${bundle.target}
     
     #define variables
     variables:
@@ -62,8 +66,8 @@ targets:
     mode: production
 
     workspace:
-      host: https://dbc-3cceb672-6c68.cloud.databricks.com
-      # We explicitly deploy to /Workspace/Users/a.armillotta91@gmail.com to make sure we only have a single copy.
+      host: ${var.databricks_host}
+      # We explicitly deploy to /Workspace/Shared to make sure we only have a single copy.
       root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
 
     variables:
@@ -80,5 +84,5 @@ targets:
           
     
     permissions:
-      - user_name: a.armillotta91@gmail.com
+      - user_name: ${var.admin_user_email}
         level: CAN_MANAGE
