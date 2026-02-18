@@ -62,7 +62,12 @@ jobs:
       #   - DATABRICKS_HOST: Workspace URL from vars.DATABRICKS_HOST
       #   - DATABRICKS_CLIENT_ID: Service principal ID from secrets.DATABRICKS_CLIENT_ID
       #   - DATABRICKS_AUTH_TYPE: Set to 'github-oidc' for OIDC authentication
+      #
+      # The databricks_host variable is explicitly passed to the bundle to ensure
+      # proper workspace configuration during deployment.
       # ========================================================================
       - name: Deploy asset bundle to dev
         working-directory: ./speech_to_text_asset_bundle
-        run: databricks bundle deploy --target dev
+        run: |
+          databricks bundle deploy --target dev \
+            --var="databricks_host=${{ vars.DATABRICKS_HOST }}"
