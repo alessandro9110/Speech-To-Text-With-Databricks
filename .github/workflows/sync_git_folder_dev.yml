@@ -7,6 +7,9 @@ on:
     branches:
       # Set your base branch name here
       - dev
+    paths:
+      - 'speech_to_text_asset_bundle/**'
+      - '.github/workflows/**'
 
 permissions:
   # These permissions are required for workload identity federation.
