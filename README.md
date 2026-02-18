@@ -41,22 +41,18 @@ Before setting up this solution, ensure you have:
 
 ### 1. Databricks Catalog Creation
 
-Before deploying the asset bundle, you must manually create the required catalogs in Databricks:
+Before deploying the asset bundle, you must manually create the required catalog in Databricks:
 
-#### For Dev Environment:
-Create a catalog named: **`speech_to_text_with_databricks`**
-
-#### For Prod Environment:
-Create a catalog named: **`speech_to_text`**
+**Catalog Name:** **`text_to_speech`** (used by both Dev and Prod environments)
 
 **Steps to create a catalog:**
 1. Navigate to your Databricks workspace
 2. Go to **Data** in the left sidebar
 3. Click **Create Catalog**
-4. Enter the catalog name (as specified above for your target environment)
+4. Enter the catalog name: `text_to_speech`
 5. Click **Create**
 
-**Note:** Ensure the service principal (configured in the next step) has the necessary permissions on these catalogs.
+**Note:** Ensure the service principal (configured in the next step) has the necessary permissions on this catalog.
 
 ### 2. Databricks Service Principal Creation
 
