@@ -211,20 +211,26 @@ Speech-To-Text-With-Databricks/
 │   ├── workflows/
 │   │   ├── sync_git_folder_dev.yml          # Dev environment Git sync workflow
 │   │   └── deploy_asset_bundle_prod.yml     # Prod environment deployment workflow
+│   ├── agents/                              # Custom Copilot agent definitions
+│   ├── instructions/                        # Workflow instructions
+│   └── copilot-instructions.md              # Copilot configuration
+├── docs/
 │   ├── ENVIRONMENT_SETUP.md                 # Detailed GitHub Actions setup
-│   └── RIEPILOGO.md                         # Configuration summary
+│   └── copilot-agents.md                    # Copilot agents documentation
 ├── speech_to_text_asset_bundle/
 │   ├── databricks.yml                       # Asset bundle configuration
 │   ├── resources/                           # Job and pipeline definitions
 │   ├── src/                                 # Source code and transformations
+│   ├── tests/                               # Test suite
+│   ├── pyproject.toml                       # Python dependencies and tooling
 │   └── README.md                            # Asset bundle documentation
 └── README.md                                # This file
 ```
 
 ## Additional Documentation
 
-- **[GitHub Actions Environment Setup](.github/ENVIRONMENT_SETUP.md)** - Detailed guide for configuring GitHub Actions
-- **[Configuration Summary](.github/RIEPILOGO.md)** - Quick reference for environment variables and secrets
+- **[GitHub Actions Environment Setup](docs/ENVIRONMENT_SETUP.md)** - Detailed guide for configuring GitHub Actions
+- **[Copilot Agents Documentation](docs/copilot-agents.md)** - Information about custom Copilot agents in this repository
 - **[Asset Bundle Documentation](speech_to_text_asset_bundle/README.md)** - Details on managing the Databricks asset bundle
 - **[Databricks Asset Bundles](https://docs.databricks.com/dev-tools/bundles/index.html)** - Official Databricks documentation
 - **[GitHub OIDC in Databricks](https://docs.databricks.com/dev-tools/auth/provider-github.html)** - Official guide for GitHub Actions integration
@@ -262,7 +268,7 @@ Speech-To-Text-With-Databricks/
 3. Ensure the workspace path specified in the prod target is accessible
 4. Review the workflow logs for specific error messages
 
-### For more troubleshooting help, see the [ENVIRONMENT_SETUP.md](.github/ENVIRONMENT_SETUP.md#troubleshooting) documentation.
+### For more troubleshooting help, see the [ENVIRONMENT_SETUP.md](docs/ENVIRONMENT_SETUP.md#troubleshooting) documentation.
 
 ---
 
