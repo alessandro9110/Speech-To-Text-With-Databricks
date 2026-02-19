@@ -18,10 +18,10 @@ artifacts:
 variables:
   catalog:
     description: The catalog to use for Speech To Text With Databrikcs solution.
-    default: "speech_to_text"
+    default: speech_to_text
   schema:
     description: The catalog to use for Speech To Text With Databrikcs solution.
-    default: "default"
+    default: default
   service_principal_id:
     description: The Application ID (UUID) of the service principal for production
 
@@ -32,11 +32,6 @@ variables:
 targets:
   dev:
     # See also https://docs.databricks.com/dev-tools/bundles/deployment-modes.html.
-
-    #define variables
-    variables:
-      catalog: ${var.catalog.default}
-      schema: ${var.schema.default}
 
     run_as:
       service_principal_name: ${var.service_principal_id}
@@ -50,20 +45,20 @@ targets:
       trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
       jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
       tags:
-        department: finance
-        
+        department: finance     
+
     # Note: workspace.host is not specified here because the bundle automatically uses the workspace where the code is deployed (based on your Databricks CLI profile or current context)
     workspace:
       #host
       root_path: ~/Shared/.bundle/${bundle.name}/${bundle.target}
 
-    # define resouces like: schemas etc.
+            # define resouces like: schemas etc.
     resources:
       schemas:
         dev:
-          name: ${var.schema.default}
-          catalog_name: ${var.catalog.default}
-          comment: 'Schema for development'
+          name: ${var.schema}
+          catalog_name: ${var.catalog}
+          comment: 'Schema for development of speech to text'
     
 
   prod:
