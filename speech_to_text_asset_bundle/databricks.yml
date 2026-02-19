@@ -59,6 +59,14 @@ targets:
           name: ${var.schema}
           catalog_name: ${var.catalog}
           comment: 'Schema for development of speech to text'
+      
+      volumes:
+        files:
+          name: files
+          catalog_name: ${var.catalog}
+          schema_name: ${var.schema}
+          volume_type: MANAGED
+          comment: 'Volume for storing files in development environment'
     
 
   prod:
