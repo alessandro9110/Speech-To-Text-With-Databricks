@@ -207,25 +207,63 @@ For more details, see [speech_to_text_asset_bundle/README.md](speech_to_text_ass
 
 ```
 Speech-To-Text-With-Databricks/
-├── .github/
-│   ├── workflows/
-│   │   ├── sync_git_folder_dev.yml          # Dev environment Git sync workflow
-│   │   └── deploy_asset_bundle_prod.yml     # Prod environment deployment workflow
-│   ├── agents/                              # Custom Copilot agent definitions
-│   ├── instructions/                        # Workflow instructions
-│   └── copilot-instructions.md              # Copilot configuration
-├── docs/
-│   ├── ENVIRONMENT_SETUP.md                 # Detailed GitHub Actions setup
-│   └── copilot-agents.md                    # Copilot agents documentation
-├── speech_to_text_asset_bundle/
-│   ├── databricks.yml                       # Asset bundle configuration
-│   ├── resources/                           # Job and pipeline definitions
-│   ├── src/                                 # Source code and transformations
-│   ├── tests/                               # Test suite
-│   ├── pyproject.toml                       # Python dependencies and tooling
-│   └── README.md                            # Asset bundle documentation
-└── README.md                                # This file
+├── .github/                                 # GitHub configuration and CI/CD
+│   ├── workflows/                           # GitHub Actions workflow definitions
+│   │   ├── sync_git_folder_dev.yml          # Dev: Syncs code to Databricks Git folder on push to 'dev' branch
+│   │   └── deploy_asset_bundle_prod.yml     # Prod: Deploys asset bundle to production on push to 'main' branch
+│   ├── agents/                              # Custom GitHub Copilot agent definitions
+│   │   ├── dab-specialist.agent.md          # Agent for Databricks Asset Bundle configuration
+│   │   ├── dab-workflows-engineer.agent.md  # Agent for GitHub Actions CI/CD workflows
+│   │   ├── databricks-platform-engineer.agent.md  # Agent for Databricks solution development
+│   │   └── docs-writer.agent.md             # Agent for documentation maintenance
+│   ├── instructions/                        # Instructions for workflows and agents
+│   │   └── workflow.instructions.md         # Guidelines for workflow configuration
+│   └── copilot-instructions.md              # Global Copilot configuration (code review rules)
+├── docs/                                    # Additional project documentation
+│   ├── ENVIRONMENT_SETUP.md                 # Step-by-step guide for GitHub Actions environment setup
+│   └── copilot-agents.md                    # Documentation on custom Copilot agents and their usage
+├── speech_to_text_asset_bundle/             # Databricks Asset Bundle (DAB) solution
+│   ├── databricks.yml                       # Asset bundle configuration (targets: dev/prod, variables, run_as)
+│   ├── resources/                           # Databricks resources definitions (jobs, pipelines)
+│   │   ├── sample_job.job.yml               # Sample job with notebook, Python wheel, and pipeline tasks
+│   │   └── speech_to_text_asset_bundle_etl.pipeline.yml  # DLT pipeline definition for ETL processing
+│   ├── src/                                 # Source code for jobs and pipelines
+│   │   ├── speech_to_text_asset_bundle/     # Python package for job tasks
+│   │   │   ├── main.py                      # Entry point for Python wheel tasks
+│   │   │   └── taxis.py                     # Sample data processing module
+│   │   ├── speech_to_text_asset_bundle_etl/ # Delta Live Tables (DLT) pipeline code
+│   │   │   ├── transformations/             # DLT transformation modules
+│   │   │   └── README.md                    # Pipeline documentation
+│   │   └── sample_notebook.ipynb            # Sample Databricks notebook for job tasks
+│   ├── tests/                               # Test suite for the solution
+│   │   ├── conftest.py                      # Pytest configuration and fixtures
+│   │   └── sample_taxis_test.py             # Sample tests for data transformations
+│   ├── fixtures/                            # Test data and fixture files
+│   ├── pyproject.toml                       # Python project configuration (dependencies, build, linting)
+│   ├── .gitignore                           # Git ignore rules for the bundle
+│   └── README.md                            # Asset bundle-specific documentation
+├── .gitignore                               # Repository-level Git ignore rules
+├── LICENSE                                  # Project license
+└── README.md                                # This file - main project documentation
 ```
+
+### Folder Descriptions
+
+#### `.github/`
+Contains GitHub-specific configuration including CI/CD workflows and custom Copilot agents. The workflows automate deployment to Databricks environments, while agents provide specialized assistance for different aspects of the project (DAB configuration, workflow management, solution development, and documentation).
+
+#### `docs/`
+Additional documentation beyond the main README. Includes detailed setup guides for GitHub Actions environments and documentation about the custom Copilot agents available in this repository.
+
+#### `speech_to_text_asset_bundle/`
+The core Databricks Asset Bundle solution. This directory contains:
+- **Configuration** (`databricks.yml`): Defines deployment targets (dev/prod), variables, and bundle settings
+- **Resources** (`resources/`): Databricks job and pipeline definitions in YAML format
+- **Source Code** (`src/`): Python packages and notebooks for data processing
+  - `speech_to_text_asset_bundle/`: Python wheel package for job tasks
+  - `speech_to_text_asset_bundle_etl/`: Delta Live Tables pipeline transformations
+- **Tests** (`tests/`): Unit and integration tests using pytest
+- **Dependencies** (`pyproject.toml`): Python dependencies and development tools (pytest, ruff, databricks-connect)
 
 ## Additional Documentation
 
