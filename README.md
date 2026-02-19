@@ -219,9 +219,21 @@ Speech-To-Text-With-Databricks/
 
 #### `.github/`
 Contains GitHub-specific configuration including CI/CD workflows and custom Copilot agents. The workflows automate deployment to Databricks environments:
-- **`workflows/`**: GitHub Actions workflows for dev (Git folder sync) and prod (asset bundle deployment)
-- **`agents/`**: Custom GitHub Copilot agent definitions for specialized assistance
-- **`instructions/`**: Guidelines and instructions for workflows and agents
+
+- **`workflows/`**: GitHub Actions workflow definitions for automated CI/CD
+  - `sync_git_folder_dev.yml`: Syncs code to Databricks Git folder on push to `dev` branch (Dev environment)
+  - `deploy_asset_bundle_prod.yml`: Deploys asset bundle to production on push to `main` branch (Prod environment)
+
+- **`agents/`**: Custom GitHub Copilot agent definitions for specialized development assistance
+  - `dab-specialist.agent.md`: Expert in Databricks Asset Bundle configuration and best practices
+  - `dab-workflows-engineer.agent.md`: Specialist for GitHub Actions CI/CD workflows
+  - `databricks-platform-engineer.agent.md`: End-to-end Databricks solution development expert
+  - `docs-writer.agent.md`: Documentation maintenance and technical writing
+
+- **`instructions/`**: Guidelines and rules for workflows and agents
+  - `workflow.instructions.md`: Workflow configuration guidelines (path filters, security rules)
+
+- **`copilot-instructions.md`**: Global GitHub Copilot configuration including code review rules and documentation standards
 
 #### `docs/`
 Additional documentation beyond the main README:
