@@ -10,18 +10,18 @@ schema_location_base = spark.conf.get("schema_location_base")
 @dp.table(
     name="bronze_audio_files",
     cluster_by=["_ingested_date"],
-    comment="Raw audio file metadata ingested from the Unity Catalog Volume. "
-            "Binary content is excluded to keep table size manageable; "
-            "use the 'path' column to locate the file for transcription.",
+    comment="Raw audio files ingested as bytes from the Unity Catalog Volume. "
+            "The 'content' column holds the raw binary of each audio file "
+            "and is passed downstream to the transcription model.",
 )
 def bronze_audio_files():
     """
-    Bronze layer: Auto Loader streaming ingest of audio files from
+    Bronze layer: Auto Loader streaming ingest of audio files as bytes from
     /Volumes/{catalog}/{schema}/files/.
 
-    Captures file metadata only (path, size, modification time).
-    The actual transcription is performed downstream by a separate job
-    that reads from this table and calls the model serving endpoint.
+    Each row contains the full binary content of one audio file alongside
+    its metadata (path, size, modification time). The transcription job
+    reads 'content' and calls the Databricks Model Serving endpoint.
     """
     return (
         spark.readStream.format("cloudFiles")
@@ -29,11 +29,10 @@ def bronze_audio_files():
         .option("cloudFiles.schemaLocation", f"{schema_location_base}/bronze_audio_files")
         # Include only supported audio formats
         .option("pathGlobFilter", "*.{wav,mp3,flac,m4a,ogg,mp4}")
-        # Exclude the binary content column — audio files can be large
-        .option("binaryFile.excludeContent", "true")
         .load(f"/Volumes/{catalog}/{schema}/files/")
         .select(
             col("path"),
+            col("content"),                              # raw bytes of the audio file
             col("modificationTime"),
             col("length").alias("file_size_bytes"),
             current_timestamp().alias("_ingested_at"),
