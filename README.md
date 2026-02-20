@@ -205,9 +205,13 @@ For more details, see [speech_to_text_asset_bundle/README.md](speech_to_text_ass
 
 ## Project Structure
 
+
 ```
 Speech-To-Text-With-Databricks/
-├── .github/                         # GitHub configuration and CI/CD workflows
+├── .ai-dev-kit/                     # AI Dev Kit versioning and (optionally) skills for local/experimental use
+├── .claude/                         # Claude agent skills (mirrors .github/skills for Anthropic/Claude integrations)
+├── .github/                         # GitHub configuration, CI/CD workflows, Copilot/agent skills
+│   └── skills/                      # Skills for Copilot/AI agents (Databricks, MLflow, etc.)
 ├── docs/                            # Additional project documentation
 ├── speech_to_text_asset_bundle/     # Databricks Asset Bundle solution
 ├── .gitignore                       # Repository-level Git ignore rules
@@ -217,35 +221,31 @@ Speech-To-Text-With-Databricks/
 
 ### Folder Descriptions
 
+#### `.ai-dev-kit/`
+Contains versioning for the AI Dev Kit and (optionally) local/experimental skills. Used for local agent/skill development or version pinning.
+
+#### `.claude/`
+Contains skills for Claude/Anthropic agent integrations. Mirrors the structure of `.github/skills` but is used for Anthropic/Claude-specific agent skills.
+
 #### `.github/`
-Contains GitHub-specific configuration including CI/CD workflows and custom Copilot agents. The workflows automate deployment to Databricks environments:
-
-- **`workflows/`**: GitHub Actions workflow definitions for automated CI/CD
-  - `sync_git_folder_dev.yml`: Syncs code to Databricks Git folder on push to `dev` branch (Dev environment)
-  - `deploy_asset_bundle_prod.yml`: Deploys asset bundle to production on push to `main` branch (Prod environment)
-
-- **`agents/`**: Custom GitHub Copilot agent definitions for specialized development assistance
-  - `dab-specialist.agent.md`: Expert in Databricks Asset Bundle configuration and best practices
-  - `dab-workflows-engineer.agent.md`: Specialist for GitHub Actions CI/CD workflows
-  - `databricks-platform-engineer.agent.md`: End-to-end Databricks solution development expert
-  - `docs-writer.agent.md`: Documentation maintenance and technical writing
-
-- **`instructions/`**: Guidelines and rules for workflows and agents
-  - `workflow.instructions.md`: Workflow configuration guidelines (path filters, security rules)
-
-- **`copilot-instructions.md`**: Global GitHub Copilot configuration including code review rules and documentation standards
+Contains GitHub-specific configuration, CI/CD workflows, Copilot agent definitions, and skills for Copilot/AI agents.
+   - `workflows/`: GitHub Actions workflow definitions for CI/CD automation
+   - `skills/`: Skills for Copilot/AI agents (Databricks, MLflow, etc.)
+   - `agents/`: Custom Copilot agent definitions
+   - `instructions/`: Guidelines and workflow rules
+   - `copilot-instructions.md`: Global Copilot configuration and code review rules
 
 #### `docs/`
 Additional documentation beyond the main README:
-- **`ENVIRONMENT_SETUP.md`**: Step-by-step guide for configuring GitHub Actions environments
-- **`copilot-agents.md`**: Documentation on custom Copilot agents available in this repository
+   - `ENVIRONMENT_SETUP.md`: Step-by-step guide for configuring GitHub Actions environments
+   - `copilot-agents.md`: Documentation on custom Copilot agents available in this repository
 
 #### `speech_to_text_asset_bundle/`
-The core Databricks Asset Bundle solution for speech-to-text processing. Contains the complete solution including:
-- Configuration files (databricks.yml, pyproject.toml)
-- Resource definitions (jobs, pipelines)
-- Source code (Python packages, DLT transformations, notebooks)
-- Tests and fixtures
+The core Databricks Asset Bundle solution for speech-to-text processing. Contains:
+   - Configuration files (databricks.yml, pyproject.toml)
+   - Resource definitions (jobs, pipelines)
+   - Source code (Python packages, DLT transformations, notebooks)
+   - Tests and fixtures
 
 **For detailed documentation of the asset bundle structure and development workflow**, see [speech_to_text_asset_bundle/README.md](speech_to_text_asset_bundle/README.md)
 
