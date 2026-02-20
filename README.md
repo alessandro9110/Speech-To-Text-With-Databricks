@@ -74,23 +74,30 @@ Grant the service principal access to your workspace:
 1. Go to your **Workspace settings** -> **Permissions**
 2. Add the service principal with appropriate permissions (e.g., "User" or "Admin")
 
-#### Step 2.3: Configure OIDC Federation Policy
+<details>
+<summary><strong>Step 2.3: Configure OIDC Federation Policy (click to expand)</strong></summary>
 
 Federation policies allow your automated workloads running outside of Databricks to securely access Databricks APIs, using tokens provided by the workload runtime.
 
-Create the Federation Policy in the Accoun Console:
-1. Go to **User Managment** -> **Service principals** -> **GitHub Actions Deploy Principal**
+Create the Federation Policy in the Account Console:
+1. Go to **User Management** -> **Service principals** -> **GitHub Actions Deploy Principal**
 2. Click on **Create Policy** and pass the following values:
-   . Issuer URL: https://token.actions.githubusercontent.com
-   . Subject: repo:alessandro9110/Speech-To-Text-With-Databricks:environment:Dev (if you Forked or CLoned the repo, use your account_id instead of alessandro9110)
-   . Audiences: Service Principal UUID
+   - Issuer URL: https://token.actions.githubusercontent.com
+   - Subject: repo:alessandro9110/Speech-To-Text-With-Databricks:environment:Dev (if you Forked or Cloned the repo, use your account_id instead of alessandro9110)
+   - Audiences: Service Principal UUID
 
-**Note:** the Federation Policy is only available into Account Console and not for Free Edition.
+**Note:** the Federation Policy is only available in Account Console and not for Free Edition.
 
-#### Step 2.4: Create the Git Repo in the Dev environment
+</details>
+
+<details>
+<summary><strong>Step 2.4: Create the Git Repo in the Dev environment (click to expand)</strong></summary>
+
 In the Dev workspace, create the git repository in the path: Workspace/Shared/
 
 **Note**: This step is only required for the Dev environment, which uses Git folder synchronization. The Prod environment uses direct asset bundle deployment.
+
+</details>
 
 
 ### 3. GitHub Actions Configuration
