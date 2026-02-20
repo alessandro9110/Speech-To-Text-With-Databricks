@@ -19,7 +19,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: 'Update git folder'
+    name: 'Sync Git Folder and Deploy Dev'
     environment: Dev
     # ========================================================================
     # REQUIRED ENVIRONMENT CONFIGURATION
