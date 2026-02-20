@@ -2,11 +2,12 @@
 
 ## Overview
 
-This Databricks Asset Bundle implements an end-to-end speech-to-text processing solution using the Databricks Lakehouse platform. The solution processes audio files from contact center recordings and converts them into structured text data that can be analyzed and queried.
+This Databricks Asset Bundle implements an end-to-end speech-to-text processing solution using the Databricks Lakehouse platform. The solution ingests audio files from contact center recordings, tracks them through a Bronze → Silver medallion pipeline, and prepares the data for downstream transcription and analysis.
 
 ### Data Source
 
 The audio files used in this solution are sourced from:
+
 - **Dataset**: [AxonData English Contact Center Audio Dataset](https://huggingface.co/datasets/AxonData/english-contact-center-audio-dataset/tree/main)
 - **Storage**: Files have been downloaded from HuggingFace and uploaded to the Databricks **`files` volume** in the catalog
 
@@ -16,81 +17,70 @@ This dataset contains English language audio recordings from contact center scen
 
 ## Solution Architecture
 
-The solution follows a structured workflow for processing audio files through multiple stages:
+The solution follows a medallion architecture to process audio files through multiple stages:
 
-### Step-by-Step Processing Flow
+### Processing Flow
 
-1. **Data Ingestion** (Planned/TODO)
-   - Audio files are stored in the `files` volume within the `speech_to_text` catalog
-   - Files are organized in a structured format for efficient processing
-   - Metadata about audio files is captured for tracking
+1. **Data Ingestion — Bronze** ✅
+   - Audio files stored in `/Volumes/{catalog}/{schema}/files/` are continuously tracked via Auto Loader
+   - File metadata (path, size, modification time) is captured as a streaming Delta table
+   - Supported formats: `wav`, `mp3`, `flac`, `m4a`, `ogg`, `mp4`
 
-2. **Speech-to-Text Conversion** (Planned/TODO)
-   - Audio files are processed using speech recognition models
-   - Transcription results are generated with timestamps and confidence scores
-   - Processed results are stored as structured data in Delta tables
+2. **Data Validation — Silver** ✅
+   - Bronze records are validated and enriched
+   - File name and extension are extracted from the path
+   - Invalid or empty files are filtered out
+   - Each record is assigned a `transcription_status = 'pending'` to be updated by the transcription job
 
-3. **Data Transformation** (Planned/TODO)
-   - Raw transcriptions are cleaned and normalized
-   - Text analytics and NLP processing applied
-   - Structured outputs created for downstream analysis
+3. **Speech-to-Text Conversion** (Planned/TODO)
+   - A downstream job reads `silver_audio_files` and calls the model serving endpoint
+   - Transcription results (text, timestamps, confidence scores) are written back to a Gold table
 
 4. **Data Quality & Monitoring** (Planned/TODO)
    - Quality checks on transcription accuracy
    - Monitoring of processing times and success rates
-   - Alerting for failed or low-quality transcriptions
 
 ---
 
 ## Project Structure
 
-The asset bundle is organized into logical folders, each serving a specific purpose:
-
-### `/` (Root Directory)
-- **`databricks.yml`**: Main configuration file defining the bundle, variables, and deployment targets (dev/prod)
-- **`pyproject.toml`**: Python project configuration including dependencies, build settings, and development tools
+```text
+speech_to_text_asset_bundle/
+├── databricks.yml                          # Bundle config: variables, targets (dev/prod)
+├── pyproject.toml                          # Python project config and dev dependencies
+├── resources/
+│   └── stt_bundle_audio_etl.pipeline.yml  # Spark Declarative Pipeline definition
+└── src/
+    ├── sample_notebook.ipynb               # Interactive exploration notebook
+    └── stt_bundle_audio_etl/
+        ├── README.md
+        └── transformations/
+            ├── bronze_audio_files.py       # Bronze: Auto Loader ingest from Volume
+            └── silver_audio_files.py       # Silver: validation and enrichment
+```
 
 ### `/resources/`
-Contains YAML definitions for all Databricks resources (jobs, pipelines, etc.):
-- **Pipeline definitions**: Delta Live Tables (DLT) pipelines for ETL processing
-- **Job definitions**: Orchestration jobs that combine notebooks, Python tasks, and pipeline refreshes
-- **Resource configuration**: Each resource is defined in its own `.yml` file for clarity
 
-Current resources:
-- `speech_to_text_asset_bundle_etl.pipeline.yml`: Main DLT pipeline for data transformations
-- `sample_job.job.yml`: Orchestration job demonstrating notebook, Python wheel, and pipeline tasks
+Contains YAML definitions for all Databricks resources:
 
-### `/src/`
-Source code for all data processing logic:
+- **`stt_bundle_audio_etl.pipeline.yml`**: Spark Declarative Pipeline (serverless) that runs the Bronze → Silver transformations. Pipeline-level parameters (`catalog`, `schema`, `schema_location_base`) are passed to Python code via `spark.conf.get()`.
 
-#### `/src/speech_to_text_asset_bundle/`
-Python package that gets built into a wheel (`.whl`) for job tasks:
-- Contains entry points for Python-based job tasks
-- Modules for data processing and business logic
-- Packaged and deployed as a distributable wheel file
+### `/src/stt_bundle_audio_etl/transformations/`
 
-#### `/src/speech_to_text_asset_bundle_etl/`
-Delta Live Tables (DLT) pipeline code:
-- **`/transformations/`**: DLT dataset definitions and transformation logic
-  - Each dataset is typically defined in its own Python file
-  - Uses DLT decorators (`@dlt.table`, `@dlt.view`) for declarative transformations
-- Follows DLT best practices for incremental processing and data quality
+Python files that define the pipeline tables using the modern `pyspark.pipelines` API (`@dp.table`):
 
-#### `/src/sample_notebook.ipynb`
-Sample Databricks notebook demonstrating:
-- Interactive data exploration
-- Integration with the bundle's Python packages
-- Notebook-based tasks in job workflows
+- **`bronze_audio_files.py`** — Bronze layer. Streams audio file metadata from `/Volumes/{catalog}/{schema}/files/` using Auto Loader. Captures `path`, `file_size_bytes`, `modificationTime`, `_ingested_at`, `_ingested_date`. Binary content is excluded to keep the table size manageable.
+- **`silver_audio_files.py`** — Silver layer. Reads from `bronze_audio_files`, extracts `file_name` and `file_extension`, filters unsupported formats and empty files, and adds `transcription_status = 'pending'`.
 
-### `/tests/`
-Testing infrastructure for the solution:
-- **Unit tests**: Test individual functions and transformations
-- **Integration tests**: Validate end-to-end workflows
-- Uses pytest framework with Databricks Connect for local testing
-- `conftest.py`: Shared test fixtures and configuration
+#### Auto Loader Schema Metadata
 
-### `/fixtures/`
-Test data and fixture files used by the test suite (currently empty, can be populated with sample data).
+Schema inference metadata for Auto Loader is stored at:
+
+```text
+/Volumes/{catalog}/{schema}/files/_schema_metadata/bronze_audio_files
+```
+
+This path is configured via the `schema_location_base` pipeline parameter and is kept separate from the source audio files to avoid permission conflicts.
 
 ---
 
@@ -99,8 +89,9 @@ Test data and fixture files used by the test suite (currently empty, can be popu
 ### Prerequisites
 
 Before deploying, ensure you have:
+
 1. Databricks workspace access with appropriate permissions
-2. Databricks CLI installed (`pip install databricks-cli`)
+2. Databricks CLI installed and configured
 3. Required catalog created: `speech_to_text` (must be created manually in Databricks)
 4. Service principal configured (for production deployments via GitHub Actions)
 
@@ -109,73 +100,65 @@ Before deploying, ensure you have:
 The bundle supports two deployment targets:
 
 #### **Dev Target** (Default)
-- **Purpose**: Development and testing
+
 - **Catalog**: `speech_to_text`
 - **Schema**: `default`
-- **Mode**: Development mode (pipelines run in development mode)
+- **Mode**: Development (pipeline runs in development mode)
 - **Deployment path**: `~/Shared/.bundle/speech_to_text_asset_bundle/dev`
-- **Resources**: Includes dev schema and files volume
+- **Resources created**: dev schema + `files` managed volume
 
 #### **Prod Target**
-- **Purpose**: Production workloads
+
 - **Catalog**: `speech_to_text`
 - **Schema**: `prod`
-- **Mode**: Production mode (full pipeline deployment)
+- **Mode**: Production
 - **Deployment path**: `~/Shared/.bundle/speech_to_text_asset_bundle/prod`
-- **Resources**: Includes prod schema
+- **Resources created**: prod schema
 
 ### Variables
 
-The bundle uses variables for environment-specific configuration:
+| Variable               | Description                              | Default                          |
+|------------------------|------------------------------------------|----------------------------------|
+| `catalog`              | Unity Catalog name                       | `speech_to_text`                 |
+| `schema`               | Schema within the catalog                | `default` (dev) / `prod` (prod)  |
+| `service_principal_id` | Application ID of the service principal  | (required for deployments)       |
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `catalog` | Catalog name for Unity Catalog | `speech_to_text` |
-| `schema` | Schema name within the catalog | `default` (dev) / `prod` (prod) |
-| `service_principal_id` | Application ID of the service principal | (Required for deployments) |
-
-### Deployment Methods
-
-#### Method 1: Command Line with Variables
-
-Deploy directly with inline variables:
+### Deployment
 
 ```bash
-# Deploy to dev environment
-databricks bundle deploy --target dev
+# Validate the bundle configuration
+databricks bundle validate
 
-# Deploy to prod environment
+# Deploy to dev (default)
+databricks bundle deploy
+
+# Run the pipeline
+databricks bundle run stt_bundle_audio_etl
+
+# Deploy to production
 databricks bundle deploy --target prod
 ```
 
-#### Method 2: Using Local Configuration File
+#### Using a Local Configuration File
 
-Create a `databricks.yml.local` file (git-ignored) with your environment-specific values:
+Create a `databricks.yml.local` file (git-ignored) with environment-specific values:
 
 ```yaml
 targets:
   dev:
     variables:
       service_principal_id: "your-service-principal-uuid"
-  
   prod:
     variables:
       service_principal_id: "your-service-principal-uuid"
 ```
 
-Then deploy without passing variables:
-```bash
-databricks bundle deploy --target dev
-databricks bundle deploy --target prod
-```
+See `.databricks.yml.example` for a complete example.
 
-See `.databricks.yml.example` for a complete configuration example.
+#### GitHub Actions (Recommended for Production)
 
-#### Method 3: GitHub Actions (Recommended for Production)
-
-The solution includes automated CI/CD workflows:
 - **Dev**: Automatically syncs code to Databricks Git folder on push to `dev` branch
-- **Prod**: Automatically deploys asset bundle on push to `main` branch
+- **Prod**: Automatically deploys the asset bundle on push to `main` branch
 
 See the root [README.md](../README.md) for GitHub Actions setup instructions.
 
@@ -186,110 +169,52 @@ See the root [README.md](../README.md) for GitHub Actions setup instructions.
 ### Local Development
 
 1. **Install Dependencies**
+
    ```bash
-   # Install development dependencies
    pip install -e ".[dev]"
    ```
 
 2. **Run Tests**
+
    ```bash
-   # Run all tests
    pytest tests/
-   
-   # Run specific test file
-   pytest tests/sample_taxis_test.py
    ```
 
 3. **Linting & Code Quality**
+
    ```bash
-   # Run ruff linter
    ruff check .
-   
-   # Auto-fix issues
    ruff check --fix .
    ```
 
-4. **Build the Wheel**
+### Working with the Pipeline
+
+Transformation files are in `src/stt_bundle_audio_etl/transformations/`. Each file uses the modern Spark Declarative Pipelines (SDP) API:
+
+```python
+from pyspark import pipelines as dp
+
+@dp.table(name="my_table", cluster_by=["date_column"])
+def my_table():
+    return spark.readStream.table("upstream_table")
+```
+
+**Add a new transformation:**
+
+1. Create a new `.py` file in `transformations/`
+2. Use `@dp.table()` or `@dp.materialized_view()` decorators
+3. Access pipeline parameters with `spark.conf.get("catalog")` etc.
+4. Deploy and run:
+
    ```bash
-   # Build Python wheel package
-   uv build --wheel
+   databricks bundle deploy
+   databricks bundle run stt_bundle_audio_etl
    ```
 
-### Working with Delta Live Tables
+**View the pipeline in Databricks:**
 
-The DLT pipeline is located in `src/speech_to_text_asset_bundle_etl/transformations/`:
-
-1. **Create New Transformation**
-   - Add a new Python file in the `transformations/` directory
-   - Use DLT decorators to define datasets:
-     ```python
-     import dlt
-     
-     @dlt.table(
-         comment="Description of your dataset"
-     )
-     def my_dataset():
-         return spark.read...
-     ```
-
-2. **Test Transformation Locally**
-   ```bash
-   # Deploy pipeline to dev
-   databricks bundle deploy --target dev
-   
-   # Run specific transformation
-   databricks bundle run speech_to_text_asset_bundle_etl --select my_dataset
-   ```
-
-3. **View Pipeline in Databricks**
-   - Navigate to **Workflows** > **Delta Live Tables**
-   - Find your pipeline: `speech_to_text_asset_bundle_etl`
-   - Use the visual DAG to inspect dependencies and data lineage
-
-### Working with Jobs
-
-Jobs are defined in `resources/*.job.yml`:
-
-1. **Modify Job Configuration**
-   - Edit the YAML file for your job
-   - Configure tasks, schedules, and dependencies
-
-2. **Deploy and Run**
-   ```bash
-   # Deploy the job
-   databricks bundle deploy --target dev
-   
-   # Trigger the job manually
-   databricks bundle run sample_job
-   ```
-
-3. **Monitor Job Runs**
-   - Navigate to **Workflows** > **Jobs**
-   - View run history, logs, and task outputs
-
----
-
-## Bundle Resources Explained
-
-### Delta Live Tables Pipeline
-
-The `speech_to_text_asset_bundle_etl.pipeline.yml` defines:
-- **Serverless execution**: Automatically scales compute resources
-- **Catalog & Schema**: Uses variables for environment-specific targeting
-- **Libraries**: Loads all transformation modules from `src/speech_to_text_asset_bundle_etl/transformations/`
-- **Dependencies**: Includes project dependencies via editable install
-
-### Sample Job
-
-The `sample_job.job.yml` demonstrates:
-- **Multi-task workflow**: Combines different task types in sequence
-- **Task dependencies**: Tasks execute in order based on `depends_on` configuration
-- **Task types**:
-  - `notebook_task`: Runs Databricks notebooks
-  - `python_wheel_task`: Executes Python code from the built wheel package
-  - `pipeline_task`: Triggers DLT pipeline refresh
-- **Scheduling**: Configured to run daily (can be modified)
-- **Environment**: Uses Python environment version 4 with the bundle's wheel package
+- Navigate to **Workflows** > **Delta Live Tables**
+- Find the pipeline: `stt_bundle_audio_etl` (with dev prefix in development mode)
 
 ---
 
@@ -297,28 +222,32 @@ The `sample_job.job.yml` demonstrates:
 
 ### Catalog Structure
 
-```
+```text
 speech_to_text (catalog)
-├── default (schema - dev environment)
-│   └── files (volume - managed)
-│       └── [audio files from HuggingFace dataset]
-└── prod (schema - prod environment)
-    └── [production tables]
+├── default (schema — dev environment)
+│   └── files (volume — managed)
+│       ├── [audio files: .wav, .mp3, .flac, .m4a, .ogg, .mp4]
+│       └── _schema_metadata/          <- Auto Loader schema inference metadata
+│           └── bronze_audio_files/
+├── bronze_audio_files (streaming table)   <- created by pipeline
+├── silver_audio_files (streaming table)   <- created by pipeline
+└── prod (schema — prod environment)
 ```
 
 ### Volumes
 
 The **`files` volume** stores:
+
 - Raw audio files downloaded from HuggingFace
-- Input data for speech-to-text processing
-- Volume type: MANAGED (data managed by Databricks)
+- Auto Loader schema metadata (under `_schema_metadata/`)
+- Volume type: MANAGED
 
-### Tables (Planned/TODO)
+### Pipeline Tables
 
-Future tables to be created by the DLT pipeline:
-- Bronze: Raw transcription results
-- Silver: Cleaned and normalized text data
-- Gold: Aggregated analytics and insights
+| Table                  | Layer  | Type            | Description                                        |
+|------------------------|--------|-----------------|----------------------------------------------------|
+| `bronze_audio_files`   | Bronze | Streaming Table | Raw audio file metadata, append-only               |
+| `silver_audio_files`   | Silver | Streaming Table | Validated records, ready for transcription         |
 
 ---
 
@@ -333,9 +262,10 @@ Future tables to be created by the DLT pipeline:
 ### Permissions
 
 Ensure the service principal has:
+
 - `USE CATALOG` on `speech_to_text` catalog
 - `USE SCHEMA` on target schema (`default` or `prod`)
-- `CREATE TABLE` for DLT pipeline outputs
+- `CREATE TABLE` for pipeline table outputs
 - `READ VOLUME` and `WRITE VOLUME` on the `files` volume
 
 ### Security Notes
@@ -343,7 +273,6 @@ Ensure the service principal has:
 - Never commit secrets or credentials to the repository
 - Use GitHub Environments for managing secrets in CI/CD
 - Service principal federation with GitHub OIDC eliminates long-lived tokens
-- All workspace URLs should use placeholders in documentation
 
 ---
 
@@ -351,50 +280,44 @@ Ensure the service principal has:
 
 ### Bundle Validation Fails
 
-**Issue**: `databricks bundle validate` returns errors
+**Solution:**
 
-**Solution**:
 1. Check YAML syntax in `databricks.yml` and resource files
 2. Ensure all required variables are defined
 3. Verify catalog and schema exist in the target workspace
-4. Run `databricks bundle validate --target <target>` for specific target
+4. Run `databricks bundle validate --target <target>` for a specific target
 
 ### Pipeline Fails to Start
 
-**Issue**: DLT pipeline won't start or fails immediately
+**Solution:**
 
-**Solution**:
-1. Check that the catalog and schema specified exist
-2. Verify the service principal has appropriate permissions
-3. Review pipeline logs in the Databricks UI for specific errors
-4. Ensure transformation files have no syntax errors
+1. Verify the catalog and schema exist and the service principal has permissions
+2. Check that the `files` volume exists and audio files are present
+3. Review pipeline logs in **Workflows > Delta Live Tables**
+4. Confirm transformation files have no syntax errors
 
-### Job Task Fails
+### Auto Loader: Schema Location Errors
 
-**Issue**: Job task returns error during execution
+**Solution:**
 
-**Solution**:
-1. Check the task logs in the Databricks Jobs UI
-2. For Python wheel tasks, ensure the wheel was built successfully
-3. For notebook tasks, verify the notebook path is correct
-4. Check that all required parameters are passed correctly
+1. Ensure the `_schema_metadata` folder is not inside the audio file source path
+2. Verify `schema_location_base` is set correctly in `stt_bundle_audio_etl.pipeline.yml`
+3. The service principal needs `WRITE VOLUME` permission on the `files` volume
 
 ### Volume Access Issues
 
-**Issue**: Cannot read from or write to the `files` volume
+**Solution:**
 
-**Solution**:
-1. Verify the volume exists in the target catalog/schema
+1. Verify the volume exists: `/Volumes/{catalog}/{schema}/files/`
 2. Ensure the service principal has `READ VOLUME` permission
-3. Check that file paths are correct (format: `/Volumes/catalog/schema/volume/path`)
-4. For dev environment, confirm the volume is created during deployment
+3. For dev environment, confirm the volume is created during `databricks bundle deploy`
 
 ---
 
 ## Additional Resources
 
-- **Root README**: [../README.md](../README.md) - Overall project setup and CI/CD configuration
-- **DLT Documentation**: [Databricks DLT](https://docs.databricks.com/workflows/delta-live-tables/index.html)
+- **Root README**: [../README.md](../README.md) — Overall project setup and CI/CD configuration
+- **Spark Declarative Pipelines**: [Databricks SDP Documentation](https://docs.databricks.com/aws/en/ldp/)
 - **Asset Bundles Guide**: [Databricks Asset Bundles](https://docs.databricks.com/dev-tools/bundles/index.html)
 - **Unity Catalog**: [Unity Catalog Documentation](https://docs.databricks.com/data-governance/unity-catalog/index.html)
 
@@ -402,13 +325,9 @@ Ensure the service principal has:
 
 ## Next Steps
 
-To get started with this solution:
-
-1. ✅ **Ensure Prerequisites**: Verify catalog exists and authentication is configured
-2. ✅ **Deploy to Dev**: Run `databricks bundle deploy --target dev`
-3. 📋 **Upload Audio Files**: Place HuggingFace dataset files in the `files` volume
-4. 📋 **Implement Transformations**: Develop DLT transformations for speech-to-text processing
-5. 📋 **Test Pipeline**: Run the pipeline and validate outputs
-6. 📋 **Deploy to Prod**: Once validated, deploy to production target
-
-For questions or issues, refer to the troubleshooting section or the root README documentation.
+1. ✅ **Deploy to Dev** — `databricks bundle deploy --target dev`
+2. ✅ **Bronze & Silver Pipeline** — Audio file metadata ingested and validated
+3. 📋 **Upload Audio Files** — Place HuggingFace dataset files in `/Volumes/speech_to_text/default/files/`
+4. 📋 **Run Pipeline** — `databricks bundle run stt_bundle_audio_etl`
+5. 📋 **Implement Transcription Job** — Downstream job reads `silver_audio_files`, calls model serving endpoint, writes results to Gold table
+6. 📋 **Deploy to Prod** — `databricks bundle deploy --target prod`
