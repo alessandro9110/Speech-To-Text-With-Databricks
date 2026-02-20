@@ -30,17 +30,16 @@ targets:
 
     run_as:
       service_principal_name: ${var.service_principal_id}
-    
-    mode: development
+
     default: true
 
     presets:
-      name_prefix: ${workspace.current_user.short_name}_
+      name_prefix: 'dev_'
       pipelines_development: true # set development to true for pipelines
       trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
       jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
       tags:
-        department: finance     
+        department: finance
 
     # Note: workspace.host is not specified here because the bundle automatically uses the workspace where the code is deployed (based on your Databricks CLI profile or current context)
     workspace:
