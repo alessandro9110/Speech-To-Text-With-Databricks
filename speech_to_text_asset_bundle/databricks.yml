@@ -15,7 +15,7 @@ variables:
     description: The catalog to use for Speech To Text With Databrikcs solution.
     default: speech_to_text
   schema:
-    description: The catalog to use for Speech To Text With Databrikcs solution.
+    description: The schema to use for Speech To Text With Databricks solution.
     default: default
   service_principal_id:
     description: The Application ID (UUID) of the service principal for production
@@ -65,6 +65,9 @@ targets:
     
 
   prod:
+    run_as:
+      service_principal_name: ${var.service_principal_id}
+
     presets:
       name_prefix: 'prod_' 
       pipelines_development: false # set development to true for pipelines
@@ -90,9 +93,17 @@ targets:
         prod:
           name: prod
           catalog_name: speech_to_text
-          comment: 'Schema for development'
-          
-    
+          comment: 'Schema for production'
+
+
+    # OPTIONAL: Grant a human admin CAN_MANAGE on all prod bundle resources.
+    # Useful when resources are owned by the service principal but a platform
+    # engineer also needs to manage, trigger or modify them from the workspace UI.
+    # To activate:
+    #   1. Add admin_user_email to the variables section above (no default).
+    #   2. Uncomment the block below.
+    #   3. Add --var="admin_user_email=${{ vars.ADMIN_USER_EMAIL }}" to the
+    #      prod deploy command in .github/workflows/sync_git_folder_and_deploy_adb_prod.yml.
     #permissions:
-     # - user_name: ${var.admin_user_email}
-      #  level: CAN_MANAGE
+    #  - user_name: ${var.admin_user_email}
+    #    level: CAN_MANAGE
