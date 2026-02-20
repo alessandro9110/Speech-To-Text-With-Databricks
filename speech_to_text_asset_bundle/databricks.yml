@@ -55,21 +55,19 @@ targets:
             schema: ${var.schema}
             schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
 
-      # Schemas and volumes are managed outside the bundle (already exist in Unity Catalog).
-      # Uncomment below only for a fresh environment where these need to be created.
-      # schemas:
-      #   dev:
-      #     name: ${var.schema}
-      #     catalog_name: ${var.catalog}
-      #     comment: 'Schema for development of speech to text'
+      schemas:
+        dev:
+          name: ${var.schema}
+          catalog_name: ${var.catalog}
+          comment: 'Schema for development of speech to text'
 
-      # volumes:
-      #   files:
-      #     name: files
-      #     catalog_name: ${var.catalog}
-      #     schema_name: ${var.schema}
-      #     volume_type: MANAGED
-      #     comment: 'Volume for storing files in development environment'
+      volumes:
+        files:
+          name: files
+          catalog_name: ${var.catalog}
+          schema_name: ${var.schema}
+          volume_type: MANAGED
+          comment: 'Volume for storing files in development environment'
     
 
   prod:
