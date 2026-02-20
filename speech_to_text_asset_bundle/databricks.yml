@@ -34,7 +34,6 @@ targets:
     default: true
 
     presets:
-      name_prefix: 'dev_'
       pipelines_development: true # set development to true for pipelines
       trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
       jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
@@ -48,6 +47,14 @@ targets:
 
             # define resouces like: schemas etc.
     resources:
+      pipelines:
+        stt_bundle_audio_etl:
+          name: dev_stt_bundle_audio_etl  # Explicit dev name; avoids name_prefix affecting schema
+          configuration:
+            catalog: ${var.catalog}
+            schema: ${var.schema}
+            schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
+
       schemas:
         dev:
           name: ${var.schema}
@@ -68,8 +75,7 @@ targets:
       service_principal_name: ${var.service_principal_id}
 
     presets:
-      name_prefix: 'prod_' 
-      pipelines_development: false # set development to true for pipelines
+      pipelines_development: false # set development to false for pipelines
       trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
       jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
       tags:
@@ -88,6 +94,14 @@ targets:
     
         # define resouces like: schemas etc.
     resources:
+      pipelines:
+        stt_bundle_audio_etl:
+          name: prod_stt_bundle_audio_etl  # Explicit prod name
+          configuration:
+            catalog: ${var.catalog}
+            schema: ${var.schema}
+            schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
+
       schemas:
         prod:
           name: prod
