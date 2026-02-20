@@ -16,7 +16,7 @@ variables:
     default: speech_to_text
   schema:
     description: The schema to use for Speech To Text With Databricks solution.
-    default: default
+    default: audio
   service_principal_id:
     description: The Application ID (UUID) of the service principal for production
 
