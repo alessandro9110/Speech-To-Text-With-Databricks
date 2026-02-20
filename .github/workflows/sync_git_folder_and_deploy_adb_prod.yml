@@ -46,7 +46,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: databricks/setup-cli@main
+        name: Check Out Branch
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
       # ========================================================================
       # UPDATE GIT FOLDER IN WORKSPACE
       # ========================================================================
@@ -58,9 +69,22 @@ jobs:
         # Set your workspace path and branch name here
         run: databricks repos update /Workspace/Shared/Speech-To-Text-With-Databricks --branch main
       
+      # ========================================================================
+      # DEPLOY ASSET BUNDLE TO PRODUCTION
+      # ========================================================================
+      # Deploys the Databricks Asset Bundle to the prod target.
+      # --auto-approve: skips interactive confirmation prompts (required for CI).
+      # --target prod:  selects the production target defined in databricks.yml.
+      # --var service_principal_id: passes the service principal application ID
+      #   so that the prod target's run_as block can execute jobs/pipelines as
+      #   the SP rather than as the deploying user.
+      #
+      # NOTE: ADMIN_USER_EMAIL is available as an env var above and can be
+      #   activated by uncommenting the permissions block in databricks.yml
+      #   (prod target) and adding --var="admin_user_email=${{ vars.ADMIN_USER_EMAIL }}"
+      #   to the command below. This grants a human admin CAN_MANAGE on all
+      #   prod bundle resources alongside the service principal.
+      # ========================================================================
       - name: Deploy asset bundle to production
         working-directory: ./speech_to_text_asset_bundle
-        run: |
-          databricks bundle deploy --target prod \
-            --var="databricks_host=${{ vars.DATABRICKS_HOST }}" \
-            --var="admin_user_email=${{ vars.ADMIN_USER_EMAIL }}"
+        run: databricks bundle deploy --auto-approve --target prod --var="service_principal_id=${{ secrets.DATABRICKS_CLIENT_ID }}"
