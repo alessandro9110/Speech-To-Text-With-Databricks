@@ -1,4 +1,8 @@
 .databricks/
+.ai-dev-kit/
+.claude/
+.github/
+.vscode/
 build/
 dist/
 __pycache__/

@@ -1,4 +1,4 @@
-name: Deploy Asset Bundle Prod
+name: Sync Git Folder and Deploy Prod
 
 concurrency: prod_environment
 
@@ -19,7 +19,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: 'Deploy Asset Bundle to Production'
+    name: 'Sync Git Folder and Deploy to Production'
     environment: Prod
     # ========================================================================
     # REQUIRED ENVIRONMENT CONFIGURATION
