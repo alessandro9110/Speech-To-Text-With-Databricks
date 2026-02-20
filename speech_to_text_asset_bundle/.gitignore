@@ -1,6 +1,6 @@
 .databricks/
 .ai-dev-kit/
-.cloud/
+.claude/
 .github/
 .vscode/
 build/
