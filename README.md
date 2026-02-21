@@ -145,6 +145,8 @@ databricks bundle deploy --target prod --var="service_principal_id=<uuid>"
 
 - **[Databricks Setup](docs/DATABRICKS_SETUP.md)** — Service principal, catalog, and federation policy configuration
 - **[GitHub Actions Setup](docs/GITHUB_ACTIONS_SETUP.md)** — GitHub environments, variables, and secrets
+- **[Solution Architecture](docs/SOLUTION_ARCHITECTURE.md)** — Technical deep-dive into pipeline design and data flow
+- **[Environment Setup Overview](docs/ENVIRONMENT_SETUP.md)** — Quick setup checklist and documentation index
 - **[Asset Bundle Details](speech_to_text_asset_bundle/README.md)** — Development workflow, pipeline architecture, troubleshooting
 - **[Copilot Agents](docs/copilot-agents.md)** — Custom AI agents available in this repository
 
