@@ -1,0 +1,90 @@
+name: Sync Git Folder and Deploy Prod
+
+concurrency: prod_environment
+
+on:
+  push:
+    branches:
+      # Triggers on push to main branch
+      - main
+    paths:
+      - 'speech_to_text_asset_bundle/**'
+      - '.github/workflows/**'
+
+permissions:
+  # These permissions are required for workload identity federation.
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: 'Sync Git Folder and Deploy to Production'
+    environment: Prod
+    # ========================================================================
+    # REQUIRED ENVIRONMENT CONFIGURATION
+    # ========================================================================
+    # The following variables and secrets must be configured in the GitHub
+    # repository settings under: Settings > Environments > Prod
+    #
+    # Required Variables:
+    #   - DATABRICKS_HOST: The Databricks workspace URL
+    #     Example: https://your-workspace.cloud.databricks.com
+    #   - ADMIN_USER_EMAIL: The email address of the admin user for production
+    #     deployment permissions (used for CAN_MANAGE permission)
+    #
+    # Required Secrets:
+    #   - DATABRICKS_CLIENT_ID: The service principal application (client) ID
+    #     This is the UUID of the service principal configured for OIDC
+    #     authentication with GitHub Actions
+    # ========================================================================
+    env:
+      DATABRICKS_AUTH_TYPE: github-oidc
+      DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      ADMIN_USER_EMAIL: ${{ vars.ADMIN_USER_EMAIL }}
+
+    steps:
+      - uses: actions/checkout@v3
+        name: Check Out Branch
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+      # ========================================================================
+      # UPDATE GIT FOLDER IN WORKSPACE
+      # ========================================================================
+      # This step updates the git repository folder in the Databricks workspace
+      # to sync the latest code from the main branch. This ensures the workspace
+      # has the most recent version of the code before deploying the bundle.
+      # ========================================================================
+      - name: Update git folder
+        # Set your workspace path and branch name here
+        run: databricks repos update /Workspace/Shared/Speech-To-Text-With-Databricks --branch main
+      
+      # ========================================================================
+      # DEPLOY ASSET BUNDLE TO PRODUCTION
+      # ========================================================================
+      # Deploys the Databricks Asset Bundle to the prod target.
+      # --auto-approve: skips interactive confirmation prompts (required for CI).
+      # --target prod:  selects the production target defined in databricks.yml.
+      # --var service_principal_id: passes the service principal application ID
+      #   so that the prod target's run_as block can execute jobs/pipelines as
+      #   the SP rather than as the deploying user.
+      #
+      # NOTE: ADMIN_USER_EMAIL is available as an env var above and can be
+      #   activated by uncommenting the permissions block in databricks.yml
+      #   (prod target) and adding --var="admin_user_email=${{ vars.ADMIN_USER_EMAIL }}"
+      #   to the command below. This grants a human admin CAN_MANAGE on all
+      #   prod bundle resources alongside the service principal.
+      # ========================================================================
+      - name: Deploy asset bundle to production
+        working-directory: ./speech_to_text_asset_bundle
+        run: databricks bundle deploy --auto-approve --target prod --var="service_principal_id=${{ secrets.DATABRICKS_CLIENT_ID }}"

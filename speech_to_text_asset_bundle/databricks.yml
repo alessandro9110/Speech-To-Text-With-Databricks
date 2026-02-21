@@ -8,11 +8,6 @@ include:
   - resources/*.yml
   - resources/*/*.yml
 
-artifacts:
-  python_artifact:
-    type: whl
-    build: uv build --wheel
-
 
 # Variable declarations. These variables are assigned in the dev/prod targets below.
 variables:
@@ -20,8 +15,8 @@ variables:
     description: The catalog to use for Speech To Text With Databrikcs solution.
     default: speech_to_text
   schema:
-    description: The catalog to use for Speech To Text With Databrikcs solution.
-    default: default
+    description: The schema to use for Speech To Text With Databricks solution.
+    default: audio
   service_principal_id:
     description: The Application ID (UUID) of the service principal for production
 
@@ -35,36 +30,52 @@ targets:
 
     run_as:
       service_principal_name: ${var.service_principal_id}
-    
-    mode: development
+
     default: true
 
     presets:
-      name_prefix: ${workspace.current_user.short_name}_
       pipelines_development: true # set development to true for pipelines
       trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
       jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
       tags:
-        department: finance     
+        department: finance
 
     # Note: workspace.host is not specified here because the bundle automatically uses the workspace where the code is deployed (based on your Databricks CLI profile or current context)
     workspace:
       #host
-      root_path: ~/Shared/.bundle/${bundle.name}/${bundle.target}
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
 
             # define resouces like: schemas etc.
     resources:
+      pipelines:
+        stt_bundle_audio_etl:
+          name: dev_stt_bundle_audio_etl  # Explicit dev name; avoids name_prefix affecting schema
+          configuration:
+            catalog: ${var.catalog}
+            schema: ${var.schema}
+            schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
+
       schemas:
         dev:
           name: ${var.schema}
           catalog_name: ${var.catalog}
           comment: 'Schema for development of speech to text'
+
+      volumes:
+        files:
+          name: files
+          catalog_name: ${var.catalog}
+          schema_name: ${var.schema}
+          volume_type: MANAGED
+          comment: 'Volume for storing files in development environment'
     
 
   prod:
+    run_as:
+      service_principal_name: ${var.service_principal_id}
+
     presets:
-      name_prefix: 'prod_' 
-      pipelines_development: false # set development to true for pipelines
+      pipelines_development: false # set development to false for pipelines
       trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
       jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
       tags:
@@ -75,7 +86,7 @@ targets:
     # Note: workspace.host is not specified here because the bundle automatically uses the workspace where the code is deployed (based on your Databricks CLI profile or current context)
     workspace:
       #host
-      root_path: ~/Shared/.bundle/${bundle.name}/${bundle.target}
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
 
     variables:
       catalog: speech_to_text
@@ -83,13 +94,29 @@ targets:
     
         # define resouces like: schemas etc.
     resources:
+      pipelines:
+        stt_bundle_audio_etl:
+          name: prod_stt_bundle_audio_etl  # Explicit prod name
+          configuration:
+            catalog: ${var.catalog}
+            schema: ${var.schema}
+            schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
+
       schemas:
         prod:
           name: prod
           catalog_name: speech_to_text
-          comment: 'Schema for development'
-          
-    
+          comment: 'Schema for production'
+
+
+    # OPTIONAL: Grant a human admin CAN_MANAGE on all prod bundle resources.
+    # Useful when resources are owned by the service principal but a platform
+    # engineer also needs to manage, trigger or modify them from the workspace UI.
+    # To activate:
+    #   1. Add admin_user_email to the variables section above (no default).
+    #   2. Uncomment the block below.
+    #   3. Add --var="admin_user_email=${{ vars.ADMIN_USER_EMAIL }}" to the
+    #      prod deploy command in .github/workflows/sync_git_folder_and_deploy_adb_prod.yml.
     #permissions:
-     # - user_name: ${var.admin_user_email}
-      #  level: CAN_MANAGE
+    #  - user_name: ${var.admin_user_email}
+    #    level: CAN_MANAGE

@@ -1,0 +1,22 @@
+# The main pipeline for speech_to_text_asset_bundle
+
+resources:
+  pipelines:
+    stt_bundle_audio_etl:
+      name: stt_bundle_audio_etl
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      root_path: "../src/stt_bundle_audio_etl"
+
+      # Pipeline-level parameters accessible via spark.conf.get() in Python transformations
+      configuration:
+        catalog: ${var.catalog}
+        schema: ${var.schema}
+        # Auto Loader schema inference metadata storage (separate from source data)
+        schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
+
+      libraries:
+        - glob:
+            include: ../src/stt_bundle_audio_etl/transformations/**
+
