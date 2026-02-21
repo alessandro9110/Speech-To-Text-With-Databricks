@@ -279,9 +279,13 @@ from pyspark.sql.functions import udf, col
 # Define UDF to call model serving endpoint
 @udf("string")
 def transcribe_audio(audio_bytes):
+    # Replace 'your_secret_scope' and 'model_serving_token' with your actual
+    # Databricks secret scope and key names configured in your workspace
+    token = dbutils.secrets.get(scope="your_secret_scope", key="model_serving_token")
+    
     response = requests.post(
         "https://<workspace>.cloud.databricks.com/serving-endpoints/whisper-model/invocations",
-        headers={"Authorization": f"Bearer {dbutils.secrets.get('scope', 'token')}"},
+        headers={"Authorization": f"Bearer {token}"},
         json={"inputs": audio_bytes}
     )
     return response.json()["predictions"][0]

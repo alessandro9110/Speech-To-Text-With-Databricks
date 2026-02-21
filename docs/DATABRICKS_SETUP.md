@@ -135,12 +135,13 @@ For the Dev environment, which uses Git folder synchronization:
 1. Open your Databricks workspace
 2. Navigate to **Workspace** → **Shared**
 3. Click **Create** → **Git folder**
-4. Enter the repository URL: `https://github.com/alessandro9110/Speech-To-Text-With-Databricks`
-5. Name the folder: `Speech-To-Text-With-Databricks`
+4. Enter your repository URL: `https://github.com/<your-org>/<your-repo-name>`
+   - Example: `https://github.com/alessandro9110/Speech-To-Text-With-Databricks`
+5. Name the folder: `Speech-To-Text-With-Databricks` (or your repository name)
 6. Default branch: `dev`
 7. Click **Create**
 
-**Note**: This step is only required for the Dev environment. The Prod environment uses direct asset bundle deployment.
+**Note**: If you forked this repository, use your fork's URL. This step is only required for the Dev environment. The Prod environment uses direct asset bundle deployment.
 
 ---
 
