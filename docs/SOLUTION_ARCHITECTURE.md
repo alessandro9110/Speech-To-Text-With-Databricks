@@ -283,6 +283,8 @@ def transcribe_audio(audio_bytes):
     # Databricks secret scope and key names configured in your workspace
     token = dbutils.secrets.get(scope="your_secret_scope", key="model_serving_token")
     
+    # Replace <workspace> with your actual Databricks workspace hostname
+    # (same as DATABRICKS_HOST environment variable)
     response = requests.post(
         "https://<workspace>.cloud.databricks.com/serving-endpoints/whisper-model/invocations",
         headers={"Authorization": f"Bearer {token}"},

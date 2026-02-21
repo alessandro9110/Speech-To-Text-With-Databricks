@@ -20,6 +20,8 @@ Before deploying the asset bundle, create the required catalog in Databricks:
 
 **Catalog Name**: `speech_to_text`
 
+**Note**: Unity Catalog requires lowercase identifiers with underscores. The catalog uses `speech_to_text` (snake_case) while the repository uses `Speech-To-Text-With-Databricks` (kebab-case) to follow each platform's naming conventions.
+
 ### Steps
 
 1. Navigate to your Databricks workspace
