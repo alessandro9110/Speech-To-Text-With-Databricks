@@ -1,4 +1,4 @@
-from pyspark import pipelines as dp
+import dlt
 from pyspark.sql.functions import col, current_timestamp, to_date
 
 # Pipeline-level parameters set in speech_to_text_asset_bundle_etl.pipeline.yml
@@ -7,7 +7,7 @@ schema = spark.conf.get("schema")
 schema_location_base = spark.conf.get("schema_location_base")
 
 
-@dp.table(
+@dlt.table(
     name="bronze_audio_files",
     cluster_by=["_ingested_date"],
     comment="Raw audio files ingested as bytes from the Unity Catalog Volume. "

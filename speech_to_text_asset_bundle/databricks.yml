@@ -12,7 +12,7 @@ include:
 # Variable declarations. These variables are assigned in the dev/prod targets below.
 variables:
   catalog:
-    description: The catalog to use for Speech To Text With Databrikcs solution.
+    description: The catalog to use for Speech To Text With Databricks solution.
     default: speech_to_text
   schema:
     description: The schema to use for Speech To Text With Databricks solution.
@@ -104,9 +104,17 @@ targets:
 
       schemas:
         prod:
-          name: prod
-          catalog_name: speech_to_text
+          name: ${var.schema}
+          catalog_name: ${var.catalog}
           comment: 'Schema for production'
+
+      volumes:
+        files:
+          name: files
+          catalog_name: ${var.catalog}
+          schema_name: ${var.schema}
+          volume_type: MANAGED
+          comment: 'Volume for storing files in production environment'
 
 
     # OPTIONAL: Grant a human admin CAN_MANAGE on all prod bundle resources.

@@ -1,4 +1,4 @@
-from pyspark import pipelines as dp
+import dlt
 from pyspark.sql.functions import (
     col,
     current_timestamp,
@@ -11,7 +11,7 @@ from pyspark.sql.functions import (
 SUPPORTED_EXTENSIONS = ["wav", "mp3", "flac", "m4a", "ogg", "mp4"]
 
 
-@dp.table(
+@dlt.table(
     name="silver_audio_files",
     cluster_by=["_ingested_date", "file_extension"],
     comment="Validated and enriched audio file records ready for transcription. "

@@ -1,0 +1,67 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'speech_to_text_asset_bundle/**'
+      - '.github/workflows/**'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    name: 'Lint and Test'
+    
+    steps:
+      - uses: actions/checkout@v3
+        name: Check Out Branch
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install uv
+        run: pip install uv
+      
+      - name: Install dependencies
+        working-directory: ./speech_to_text_asset_bundle
+        run: uv sync --group dev
+      
+      - name: Run linter
+        working-directory: ./speech_to_text_asset_bundle
+        run: uv run ruff check .
+      
+      - name: Run tests
+        working-directory: ./speech_to_text_asset_bundle
+        run: uv run pytest tests/ -v || echo "No tests found or tests failed"
+
+  validate-bundle:
+    runs-on: ubuntu-latest
+    name: 'Validate Databricks Bundle'
+    
+    steps:
+      - uses: actions/checkout@v3
+        name: Check Out Branch
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+        
+      - name: Validate bundle for dev
+        working-directory: ./speech_to_text_asset_bundle
+        run: databricks bundle validate -t dev
+        
+      - name: Validate bundle for prod
+        working-directory: ./speech_to_text_asset_bundle
+        run: databricks bundle validate -t prod

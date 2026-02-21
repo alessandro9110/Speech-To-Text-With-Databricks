@@ -1,5 +1,3 @@
-from databricks.sdk.runtime import spark
-from pyspark.sql import DataFrame
 from speech_to_text_asset_bundle import taxis
 
 
