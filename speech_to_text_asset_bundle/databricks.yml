@@ -43,6 +43,9 @@ resources:
         Whisper Large V3 speech-to-text serving endpoint. Transcribes raw audio
         files (wav, mp3, flac, m4a, ogg, mp4) uploaded to the Unity Catalog Volume
         and called by the silver_audio_transcription pipeline table via ai_query().
+      tags:
+        - key: project
+          value: speech-to-text
 
       config:
         served_entities:
@@ -91,6 +94,9 @@ resources:
       description: >-
         GPT 5.2 language model serving endpoint from system.ai. Used for text
         generation and NLP tasks callable via ai_query() from pipelines or notebooks.
+      tags:
+        - key: project
+          value: speech-to-text
 
       config:
         served_entities:
@@ -150,7 +156,7 @@ targets:
       trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
       jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
       tags:
-        department: finance
+        project: speech-to-text
 
     # Note: workspace.host is not specified here because the bundle automatically uses the workspace where the code is deployed (based on your Databricks CLI profile or current context)
     workspace:
@@ -199,7 +205,7 @@ targets:
       trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
       jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
       tags:
-        department: finance
+        project: speech-to-text
 
     mode: production
 
