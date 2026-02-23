@@ -120,20 +120,32 @@ targets:
     # define resouces like: pipelines, schemas, volumes etc.
     resources:
       pipelines:
-        stt_audio_ingestion:
-          name: stt_audio_ingestion
+        stt_audio_transcription:
+          name: stt_audio_transcription
           configuration:
             catalog: ${var.catalog}
             schema: ${var.schema}
             schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
             stt_model: ${var.stt_model}
 
-        stt_nlp_analysis:
-          name: stt_nlp_analysis
+        stt_nlp_enrichment:
+          name: stt_nlp_enrichment
           configuration:
             catalog: ${var.catalog}
             schema: ${var.schema}
             nlp_model: ${var.nlp_model}
+
+      jobs:
+        stt_main:
+          # NOTE: job-level parameters are forwarded ONLY to notebook and script tasks
+          # via base_parameters / CLI args. Pipeline tasks (run_ingestion_pipeline,
+          # run_nlp_pipeline) do NOT receive these — they use the pipeline configuration
+          # block above, which is resolved at bundle deploy time.
+          parameters:
+            - name: catalog
+              default: ${var.catalog}
+            - name: schema
+              default: ${var.schema}
 
       schemas:
         dev:
@@ -175,20 +187,32 @@ targets:
         # define resouces like: schemas etc.
     resources:
       pipelines:
-        stt_audio_ingestion:
-          name: stt_audio_ingestion
+        stt_audio_transcription:
+          name: stt_audio_transcription
           configuration:
             catalog: ${var.catalog}
             schema: ${var.schema}
             schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
             stt_model: ${var.stt_model}
 
-        stt_nlp_analysis:
-          name: stt_nlp_analysis
+        stt_nlp_enrichment:
+          name: stt_nlp_enrichment
           configuration:
             catalog: ${var.catalog}
             schema: ${var.schema}
             nlp_model: ${var.nlp_model}
+
+      jobs:
+        stt_main:
+          # NOTE: job-level parameters are forwarded ONLY to notebook and script tasks
+          # via base_parameters / CLI args. Pipeline tasks (run_ingestion_pipeline,
+          # run_nlp_pipeline) do NOT receive these — they use the pipeline configuration
+          # block above, which is resolved at bundle deploy time.
+          parameters:
+            - name: catalog
+              default: ${var.catalog}
+            - name: schema
+              default: ${var.schema}
 
       schemas:
         prod:

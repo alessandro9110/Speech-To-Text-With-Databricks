@@ -22,6 +22,14 @@ resources:
     stt_main:
       name: stt_main
 
+      # Job-level parameters — overridden per target in databricks.yml.
+      # Values are injected into the evaluation notebook via base_parameters below.
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+
       tasks:
         # ── Step 1: ingest audio and produce transcriptions ───────────────────
         # Auto Loader detects new files in the Unity Catalog Volume,
@@ -50,6 +58,9 @@ resources:
             - task_key: run_nlp_pipeline
           notebook_task:
             notebook_path: ${workspace.root_path}/files/src/stt_nlp_evaluation/evaluation/nlp_quality_evaluation.py
+            base_parameters:
+              catalog: "{{job.parameters.catalog}}"
+              schema:  "{{job.parameters.schema}}"
           environment_key: serverless_env
 
       # Serverless Python environment for the evaluation notebook.

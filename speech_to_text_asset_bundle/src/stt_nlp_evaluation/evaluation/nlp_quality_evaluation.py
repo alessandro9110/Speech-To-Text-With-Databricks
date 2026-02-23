@@ -41,9 +41,15 @@ mlflow.set_experiment("/Shared/speech-to-text/nlp-quality-evaluation")
 # COMMAND ----------
 
 # DBTITLE 1,Configuration
-# ── Adjust to match your deployment environment ───────────────────────────────
-CATALOG = "speech_to_text"
-SCHEMA = "audio"      # "audio" for dev; "prod" for production
+# ── Injected by stt_main job via notebook_task.base_parameters ───────────────
+# When run from the job these are set automatically from the bundle variables
+# (var.catalog / var.schema), so dev uses "audio" and prod uses "prod".
+# When run interactively, dbutils.widgets.get() falls back to the defaults below.
+dbutils.widgets.text("catalog", "speech_to_text")
+dbutils.widgets.text("schema",  "audio")
+
+CATALOG     = dbutils.widgets.get("catalog")
+SCHEMA      = dbutils.widgets.get("schema")
 SAMPLE_SIZE = 50      # Number of rows to evaluate per NLP implementation
 # ─────────────────────────────────────────────────────────────────────────────
 

@@ -1,14 +1,12 @@
-# NLP analysis pipeline for speech_to_text_asset_bundle.
-# Reads silver_audio_transcription produced by stt_audio_ingestion and
-# enriches every transcription record with Databricks AI SQL functions
-# (sentiment, summarization, entity extraction, topic classification, Italian translation).
-# This pipeline is intentionally decoupled from the ingestion pipeline
-# so that each can be deployed, scaled and scheduled independently.
+# NLP enrichment pipeline for speech_to_text_asset_bundle.
+# Reads silver_audio_transcription and enriches every transcription record
+# with AI-based NLP tasks (sentiment, summary, entities, topic, translation).
+# Produces two silver tables comparing Databricks AI SQL functions vs ai_query().
 
 resources:
   pipelines:
-    stt_nlp_analysis:
-      name: stt_nlp_analysis
+    stt_nlp_enrichment:
+      name: stt_nlp_enrichment
       catalog: ${var.catalog}
       schema: ${var.schema}
       serverless: true
@@ -17,10 +15,10 @@ resources:
       configuration:
         catalog: ${var.catalog}
         schema: ${var.schema}
-        # Name of the external model serving endpoint used for NLP inference via ai_query().
-        # Driven by var.gpt_model defined in databricks.yml.
+        # Name of the Foundation Model API endpoint used for NLP inference via ai_query().
+        # Driven by var.nlp_model defined in databricks.yml.
         nlp_model: ${var.nlp_model}
 
       libraries:
         - glob:
-            include: ../src/stt_nlp_analysis/transformations/**
+            include: ../src/stt_nlp_enrichment/transformations/**

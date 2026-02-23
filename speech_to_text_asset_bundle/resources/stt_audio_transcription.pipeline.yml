@@ -1,9 +1,11 @@
-# The main audio ingestion pipeline for speech_to_text_asset_bundle
+# Audio transcription pipeline for speech_to_text_asset_bundle.
+# Ingests raw audio files from the Unity Catalog Volume and produces
+# silver_audio_transcription by calling the Whisper endpoint via ai_query().
 
 resources:
   pipelines:
-    stt_audio_ingestion:
-      name: stt_audio_ingestion
+    stt_audio_transcription:
+      name: stt_audio_transcription
       catalog: ${var.catalog}
       schema: ${var.schema}
       serverless: true
@@ -21,4 +23,4 @@ resources:
 
       libraries:
         - glob:
-            include: ../src/stt_audio_ingestion/transformations/**
+            include: ../src/stt_audio_transcription/transformations/**

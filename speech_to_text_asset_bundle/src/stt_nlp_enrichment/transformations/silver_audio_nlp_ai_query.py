@@ -101,5 +101,8 @@ def silver_audio_nlp_ai_query():
             f"  transcription_text)) AS translation_it",
 
             "current_timestamp() AS _analyzed_at",
+
+            # Indicates the model endpoint used to produce this row
+            f"'{nlp_model}' AS _nlp_model",
         )
     )
