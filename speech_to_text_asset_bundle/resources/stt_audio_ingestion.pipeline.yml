@@ -1,13 +1,12 @@
-# The main pipeline for speech_to_text_asset_bundle
+# The main audio ingestion pipeline for speech_to_text_asset_bundle
 
 resources:
   pipelines:
-    stt_bundle_audio_etl:
-      name: stt_bundle_audio_etl
+    stt_audio_ingestion:
+      name: stt_audio_ingestion
       catalog: ${var.catalog}
       schema: ${var.schema}
       serverless: true
-      root_path: "../src/stt_bundle_audio_etl"
 
       # Pipeline-level parameters accessible via spark.conf.get() in Python transformations
       configuration:
@@ -22,5 +21,4 @@ resources:
 
       libraries:
         - glob:
-            include: ../src/stt_bundle_audio_etl/transformations/**
-
+            include: ../src/stt_audio_ingestion/transformations/**

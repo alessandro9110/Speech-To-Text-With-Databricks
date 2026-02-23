@@ -36,6 +36,10 @@ resources:
   model_serving_endpoints:
     stt_whisper_endpoint:
       name: "${var.stt_model}"
+      description: >-
+        Whisper Large V3 speech-to-text serving endpoint. Transcribes raw audio
+        files (wav, mp3, flac, m4a, ogg, mp4) uploaded to the Unity Catalog Volume
+        and called by the silver_audio_transcription pipeline table via ai_query().
 
       config:
         served_entities:
@@ -107,15 +111,16 @@ targets:
       #host
       root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
 
-    # define resouces like: schemas etc.
+    # define resouces like: pipelines, schemas, volumes etc.
     resources:
       pipelines:
-        stt_bundle_audio_etl:
-          name: dev_stt_bundle_audio_etl  # Explicit dev name; avoids name_prefix affecting schema
+        stt_audio_ingestion:
+          name: stt_audio_ingestion
           configuration:
             catalog: ${var.catalog}
             schema: ${var.schema}
             schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
+            stt_model: ${var.stt_model}
 
       schemas:
         dev:
@@ -157,12 +162,13 @@ targets:
         # define resouces like: schemas etc.
     resources:
       pipelines:
-        stt_bundle_audio_etl:
-          name: prod_stt_bundle_audio_etl  # Explicit prod name
+        stt_audio_ingestion:
+          name: stt_audio_ingestion
           configuration:
             catalog: ${var.catalog}
             schema: ${var.schema}
             schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
+            stt_model: ${var.stt_model}
 
       schemas:
         prod:
