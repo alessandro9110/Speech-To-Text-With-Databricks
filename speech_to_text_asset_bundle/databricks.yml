@@ -24,7 +24,7 @@ variables:
     default: stt-whisper-large-v3
   gpt_model:
     description: Name of the GPT Model Serving endpoint used for text generation and NLP tasks via ai_query().
-    default: gpt-5-2
+    default: stt-gpt-5-2
 
 
 # ============================================================
