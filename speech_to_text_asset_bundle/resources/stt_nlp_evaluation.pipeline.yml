@@ -16,8 +16,12 @@ resources:
         catalog: ${var.catalog}
         schema: ${var.schema}
 
+      # mlflow[databricks]>=3.1.0 is required for mlflow.genai (scorers, judges, evaluate).
+      # The default serverless runtime ships an older MLflow version without mlflow.genai.
+      environment:
+        dependencies:
+          - "mlflow[databricks]>=3.1.0"
+
       libraries:
-        - pypi:
-            package: "mlflow[databricks]>=3.1.0"
         - glob:
             include: ../src/stt_nlp_evaluation/evaluation/**
