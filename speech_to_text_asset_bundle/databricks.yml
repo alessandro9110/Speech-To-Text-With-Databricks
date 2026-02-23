@@ -19,8 +19,53 @@ variables:
     default: audio
   service_principal_id:
     description: The Application ID (UUID) of the service principal for production
+  stt_model:
+    description: Name of the Whisper Model Serving endpoint used by the pipeline for audio transcription via ai_query().
+    default: stt-whisper-large-v3
 
 
+# ============================================================
+# TOP-LEVEL RESOURCES
+# ============================================================
+# Resources defined here are shared across ALL targets (dev, prod).
+# The endpoint name is driven by var.stt_model so that changing
+# the endpoint in one place (variables section above) propagates
+# to both the serving endpoint resource and the pipeline configuration.
+# ============================================================
+resources:
+  model_serving_endpoints:
+    stt_whisper_endpoint:
+      name: "${var.stt_model}"
+
+      config:
+        served_entities:
+          # --------------------------------------------------------
+          # Whisper Large V3 — Foundation Model from system.ai
+          # --------------------------------------------------------
+          # system.ai is the Databricks-managed Unity Catalog that
+          # hosts pre-built Foundation Models (no model registration
+          # required). Whisper Large V3 is OpenAI's state-of-the-art
+          # multilingual speech-to-text model.
+          # --------------------------------------------------------
+          - entity_name: system.ai.whisper_large_v3
+            entity_version: "1"
+            # GPU_SMALL: 1x T4 GPU — sufficient for Whisper inference
+            # Options: GPU_SMALL | GPU_MEDIUM | GPU_LARGE | MULTIGPU_MEDIUM
+            workload_type: GPU_SMALL
+            # Small cluster size; scale up to Medium/Large for higher throughput
+            workload_size: Small
+            # Scale to zero when no traffic to avoid idle GPU costs
+            scale_to_zero_enabled: true
+
+      permissions:
+        # Allow all workspace users to query the endpoint
+        - level: CAN_QUERY
+          group_name: users
+
+
+# ============================================================
+# TARGETS
+# ============================================================
 # Targets define different deployment environments (dev, prod, etc.) with their specific configurations.
 # Each target can have different settings for run_as, presets, variables, and resource definitions.
 # Use 'databricks bundle deploy --target <target_name>' to deploy to a specific environment.
@@ -45,7 +90,7 @@ targets:
       #host
       root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
 
-            # define resouces like: schemas etc.
+    # define resouces like: schemas etc.
     resources:
       pipelines:
         stt_bundle_audio_etl:

@@ -8,13 +8,13 @@ schema_location_base = spark.conf.get("schema_location_base")
 
 
 @dp.table(
-    name="bronze_audio_files",
+    name="bronze_audio_files_raw",
     cluster_by=["_ingested_date"],
     comment="Raw audio files ingested as bytes from the Unity Catalog Volume. "
             "The 'content' column holds the raw binary of each audio file "
             "and is passed downstream to the transcription model.",
 )
-def bronze_audio_files():
+def bronze_audio_files_raw():
     """
     Bronze layer: Auto Loader streaming ingest of audio files as bytes from
     /Volumes/{catalog}/{schema}/files/.
@@ -26,7 +26,7 @@ def bronze_audio_files():
     return (
         spark.readStream.format("cloudFiles")
         .option("cloudFiles.format", "binaryFile")
-        .option("cloudFiles.schemaLocation", f"{schema_location_base}/bronze_audio_files")
+        .option("cloudFiles.schemaLocation", f"{schema_location_base}/bronze_audio_files_raw")
         # Include only supported audio formats
         .option("pathGlobFilter", "*.{wav,mp3,flac,m4a,ogg,mp4}")
         .load(f"/Volumes/{catalog}/{schema}/files/")
