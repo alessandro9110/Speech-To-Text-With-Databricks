@@ -101,7 +101,7 @@ resources:
           # hosts pre-built Foundation Models (no model registration
           # required).
           # --------------------------------------------------------
-          - entity_name: system.ai.gpt_5_2
+          - entity_name: system.ai.databricks-gpt-5-2
             entity_version: "1"
             # GPU_SMALL: 1x T4 GPU — sufficient for text generation inference
             # Options: GPU_SMALL | GPU_MEDIUM | GPU_LARGE | MULTIGPU_MEDIUM
