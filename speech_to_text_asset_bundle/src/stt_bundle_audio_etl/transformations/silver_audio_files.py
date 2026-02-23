@@ -1,66 +1,67 @@
 from pyspark import pipelines as dp
-from pyspark.sql.functions import (
-    col,
-    current_timestamp,
-    lit,
-    regexp_extract,
-    lower,
-)
+from pyspark.sql.functions import col, regexp_extract, lower
 
 # Supported audio extensions (must match the pathGlobFilter in bronze)
 SUPPORTED_EXTENSIONS = ["wav", "mp3", "flac", "m4a", "ogg", "mp4"]
 
+# Pipeline-level parameters set in stt_bundle_audio_etl.pipeline.yml
+# stt_model: name of the Whisper Model Serving endpoint used for transcription
+stt_model = spark.conf.get("stt_model")
+
 
 @dp.table(
-    name="silver_audio_files",
+    name="silver_audio_transcription",
     cluster_by=["_ingested_date", "file_extension"],
-    comment="Validated and enriched audio file records ready for transcription. "
-            "Each row represents one audio file with its extracted metadata. "
-            "'transcription_status' starts as 'pending' and is updated by the "
-            "transcription job once the file has been processed.",
+    comment="Validated audio file records enriched with Whisper transcription text. "
+            "Reads raw binary content from bronze_audio_files_raw, filters out "
+            "unsupported formats and empty files, then calls ai_query() against "
+            "the Whisper model serving endpoint (stt_model pipeline parameter) "
+            "to produce the transcription_text.",
 )
-def silver_audio_files():
+def silver_audio_transcription():
     """
-    Silver layer: clean, validate, and enrich bronze_audio_files.
+    Silver layer: validate, filter, and transcribe raw audio files.
 
     Transformations applied:
     - Extract file name and extension from the full path
     - Filter to supported audio formats only
-    - Add 'transcription_status' column (default: 'pending')
-    - Add '_processed_at' audit timestamp
+    - Discard empty files before calling the endpoint
+    - Call ai_query() with the Whisper serving endpoint (stt_model) to get transcription_text
+
+    Pipeline parameter:
+        stt_model  (spark.conf)  Name of the Whisper Model Serving endpoint.
+                                 Driven by var.stt_model in databricks.yml,
+                                 injected via stt_bundle_audio_etl.pipeline.yml > configuration.
     """
-    # Reads from the bronze table defined in bronze_audio_files.py.
-    # Unqualified name resolves to the pipeline's configured catalog/schema.
     return (
-        spark.readStream.table("bronze_audio_files")
-        # Extract the file name (last segment after the final '/')
-        .withColumn(
-            "file_name",
-            regexp_extract(col("path"), r"([^/]+)$", 1),
-        )
-        # Extract the file extension (lowercased)
-        .withColumn(
-            "file_extension",
-            lower(regexp_extract(col("path"), r"\.([^.]+)$", 1)),
-        )
-        # Keep only rows whose extension is in the supported list
+        spark.readStream.table("bronze_audio_files_raw")
+
+        # Extract file name and extension for filtering and clustering
+        .withColumn("file_name", regexp_extract(col("path"), r"([^/]+)$", 1))
+        .withColumn("file_extension", lower(regexp_extract(col("path"), r"\.([^.]+)$", 1)))
+
+        # Keep only supported audio formats (must match pathGlobFilter in bronze)
         .filter(col("file_extension").isin(SUPPORTED_EXTENSIONS))
-        # Ensure the file is not empty
+
+        # Discard empty files before calling the serving endpoint
         .filter(col("file_size_bytes") > 0)
-        # Default transcription status; updated externally after model inference
-        .withColumn("transcription_status", lit("pending"))
-        .withColumn("_processed_at", current_timestamp())
-        # Forward the clustering column from bronze
-        .withColumn("_ingested_date", col("_ingested_date"))
-        .select(
-            col("path"),
-            col("file_name"),
-            col("file_extension"),
-            col("file_size_bytes"),
-            col("modificationTime"),
-            col("transcription_status"),
-            col("_ingested_at"),
-            col("_ingested_date"),
-            col("_processed_at"),
+
+        # ── Transcription via ai_query ──────────────────────────────────────
+        # selectExpr allows calling SQL AI functions from Python.
+        # ai_query() sends the raw audio bytes (content column) to the Whisper
+        # serving endpoint and returns the transcription as a STRING.
+        # Note: if the endpoint expects base64-encoded input, replace 'content'
+        #       with 'base64(content)' in the expression below.
+        # ───────────────────────────────────────────────────────────────────
+        .selectExpr(
+            "path",
+            "file_name",
+            "file_extension",
+            "file_size_bytes",
+            "modificationTime",
+            f"ai_query('{stt_model}', content) AS transcription_text",
+            "current_timestamp() AS _transcribed_at",
+            "_ingested_at",
+            "_ingested_date",
         )
     )
