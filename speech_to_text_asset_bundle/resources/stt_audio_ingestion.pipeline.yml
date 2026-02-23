@@ -1,0 +1,24 @@
+# The main audio ingestion pipeline for speech_to_text_asset_bundle
+
+resources:
+  pipelines:
+    stt_audio_ingestion:
+      name: stt_audio_ingestion
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+
+      # Pipeline-level parameters accessible via spark.conf.get() in Python transformations
+      configuration:
+        catalog: ${var.catalog}
+        schema: ${var.schema}
+        # Auto Loader schema inference metadata storage (separate from source data)
+        schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
+        # Name of the Whisper Model Serving endpoint called by silver_audio_transcription.py
+        # to transcribe audio files via ai_query(). The value is driven by the bundle
+        # variable var.stt_model defined in databricks.yml — override it per target there.
+        stt_model: ${var.stt_model}
+
+      libraries:
+        - glob:
+            include: ../src/stt_audio_ingestion/transformations/**

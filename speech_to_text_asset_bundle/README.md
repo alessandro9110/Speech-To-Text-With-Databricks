@@ -49,10 +49,10 @@ speech_to_text_asset_bundle/
 ├── databricks.yml                          # Bundle config: variables, targets (dev/prod)
 ├── pyproject.toml                          # Python project config and dev dependencies
 ├── resources/
-│   └── stt_bundle_audio_etl.pipeline.yml  # Spark Declarative Pipeline definition
+│   └── stt_audio_ingestion.pipeline.yml  # Spark Declarative Pipeline definition
 └── src/
     ├── sample_notebook.ipynb               # Interactive exploration notebook
-    └── stt_bundle_audio_etl/
+    └── stt_audio_ingestion/
         ├── README.md
         └── transformations/
             ├── bronze_audio_files.py       # Bronze: Auto Loader ingest from Volume
@@ -63,9 +63,9 @@ speech_to_text_asset_bundle/
 
 Contains YAML definitions for all Databricks resources:
 
-- **`stt_bundle_audio_etl.pipeline.yml`**: Spark Declarative Pipeline (serverless) that runs the Bronze → Silver transformations. Pipeline-level parameters (`catalog`, `schema`, `schema_location_base`) are passed to Python code via `spark.conf.get()`.
+- **`stt_audio_ingestion.pipeline.yml`**: Spark Declarative Pipeline (serverless) that runs the Bronze → Silver transformations. Pipeline-level parameters (`catalog`, `schema`, `schema_location_base`) are passed to Python code via `spark.conf.get()`.
 
-### `/src/stt_bundle_audio_etl/transformations/`
+### `/src/stt_audio_ingestion/transformations/`
 
 Python files that define the pipeline tables using the modern `pyspark.pipelines` API (`@dp.table`):
 
@@ -133,7 +133,7 @@ databricks bundle validate
 databricks bundle deploy
 
 # Run the pipeline
-databricks bundle run stt_bundle_audio_etl
+databricks bundle run stt_audio_ingestion
 
 # Deploy to production
 databricks bundle deploy --target prod
@@ -189,7 +189,7 @@ See the root [README.md](../README.md) for GitHub Actions setup instructions.
 
 ### Working with the Pipeline
 
-Transformation files are in `src/stt_bundle_audio_etl/transformations/`. Each file uses the modern Spark Declarative Pipelines (SDP) API:
+Transformation files are in `src/stt_audio_ingestion/transformations/`. Each file uses the modern Spark Declarative Pipelines (SDP) API:
 
 ```python
 from pyspark import pipelines as dp
@@ -208,13 +208,13 @@ def my_table():
 
    ```bash
    databricks bundle deploy
-   databricks bundle run stt_bundle_audio_etl
+   databricks bundle run stt_audio_ingestion
    ```
 
 **View the pipeline in Databricks:**
 
 - Navigate to **Workflows** > **Delta Live Tables**
-- Find the pipeline: `stt_bundle_audio_etl` (with dev prefix in development mode)
+- Find the pipeline: `stt_audio_ingestion` (with dev prefix in development mode)
 
 ---
 
@@ -301,7 +301,7 @@ Ensure the service principal has:
 **Solution:**
 
 1. Ensure the `_schema_metadata` folder is not inside the audio file source path
-2. Verify `schema_location_base` is set correctly in `stt_bundle_audio_etl.pipeline.yml`
+2. Verify `schema_location_base` is set correctly in `stt_audio_ingestion.pipeline.yml`
 3. The service principal needs `WRITE VOLUME` permission on the `files` volume
 
 ### Volume Access Issues
@@ -328,6 +328,6 @@ Ensure the service principal has:
 1. ✅ **Deploy to Dev** — `databricks bundle deploy --target dev`
 2. ✅ **Bronze & Silver Pipeline** — Audio file metadata ingested and validated
 3. 📋 **Upload Audio Files** — Place HuggingFace dataset files in `/Volumes/speech_to_text/default/files/`
-4. 📋 **Run Pipeline** — `databricks bundle run stt_bundle_audio_etl`
+4. 📋 **Run Pipeline** — `databricks bundle run stt_audio_ingestion`
 5. 📋 **Implement Transcription Job** — Downstream job reads `silver_audio_files`, calls model serving endpoint, writes results to Gold table
 6. 📋 **Deploy to Prod** — `databricks bundle deploy --target prod`
