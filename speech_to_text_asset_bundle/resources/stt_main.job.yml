@@ -21,6 +21,13 @@ resources:
   jobs:
     stt_main:
       name: stt_main
+      description: >-
+        End-to-end Speech-To-Text orchestration job. Runs three sequential steps:
+        (1) ingest audio files from the Unity Catalog Volume and transcribe them with Whisper via
+        stt_audio_transcription; (2) enrich every transcription with sentiment, summary, entities,
+        topic, and translation via stt_nlp_enrichment (AI SQL functions and Foundation Model API
+        in parallel); (3) compare both NLP implementations using MLflow GenAI evaluation and log
+        results to /Shared/speech-to-text/nlp-quality-evaluation.
 
       # Job-level parameters — overridden per target in databricks.yml.
       # Values are injected into the evaluation notebook via base_parameters below.
