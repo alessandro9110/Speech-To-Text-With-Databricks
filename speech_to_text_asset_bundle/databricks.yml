@@ -122,6 +122,12 @@ targets:
             schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
             stt_model: ${var.stt_model}
 
+        stt_nlp_analysis:
+          name: stt_nlp_analysis
+          configuration:
+            catalog: ${var.catalog}
+            schema: ${var.schema}
+
       schemas:
         dev:
           name: ${var.schema}
@@ -169,6 +175,12 @@ targets:
             schema: ${var.schema}
             schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
             stt_model: ${var.stt_model}
+
+        stt_nlp_analysis:
+          name: stt_nlp_analysis
+          configuration:
+            catalog: ${var.catalog}
+            schema: ${var.schema}
 
       schemas:
         prod:
