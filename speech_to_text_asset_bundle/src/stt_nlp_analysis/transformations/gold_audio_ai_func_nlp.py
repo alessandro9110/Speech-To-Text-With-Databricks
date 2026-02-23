@@ -17,7 +17,7 @@ ENTITY_LABELS_SQL = "array('person', 'organization', 'location', 'date', 'amount
 
 
 @dp.table(
-    name="stt_nlp_analysis",
+    name="stt_nlp_analysis_ai_func",
     cluster_by=["_ingested_date"],
     comment="Gold layer: NLP enrichment of transcribed audio. "
             "Reads silver_audio_transcription from the stt_audio_ingestion pipeline "
