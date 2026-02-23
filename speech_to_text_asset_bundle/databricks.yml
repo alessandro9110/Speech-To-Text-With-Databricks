@@ -48,7 +48,7 @@ resources:
           # multilingual speech-to-text model.
           # --------------------------------------------------------
           - entity_name: system.ai.whisper_large_v3
-            entity_version: "1"
+            entity_version: "3"
             # GPU_SMALL: 1x T4 GPU — sufficient for Whisper inference
             # Options: GPU_SMALL | GPU_MEDIUM | GPU_LARGE | MULTIGPU_MEDIUM
             workload_type: GPU_SMALL
@@ -56,6 +56,23 @@ resources:
             workload_size: Small
             # Scale to zero when no traffic to avoid idle GPU costs
             scale_to_zero_enabled: true
+
+      # ── AI Gateway ───────────────────────────────────────────────────────────
+      # Inference tables log every request and response to a Delta table in
+      # Unity Catalog at: {catalog}.{schema}.{table_name_prefix}_payload
+      # Useful for monitoring transcription quality, auditing, and retraining.
+      #
+      # usage_tracking_config logs token/request counts to the Databricks
+      # usage dashboard (no extra storage cost).
+      # ─────────────────────────────────────────────────────────────────────
+      ai_gateway:
+        inference_table_config:
+          enabled: true
+          catalog_name: ${var.catalog}
+          schema_name: ${var.schema}
+          table_name_prefix: inference_${var.stt_model}
+        usage_tracking_config:
+          enabled: true
 
       permissions:
         # Allow all workspace users to query the endpoint
