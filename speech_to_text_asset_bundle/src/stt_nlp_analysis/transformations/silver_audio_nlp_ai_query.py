@@ -5,21 +5,21 @@ from pyspark.sql.functions import col, trim
 catalog = spark.conf.get("catalog")
 schema = spark.conf.get("schema")
 # Name of the external model serving endpoint used for NLP inference.
-# Driven by var.gpt_model in databricks.yml (default: stt-gpt-5-2).
+# Driven by var.nlp_model in databricks.yml (default: databricks-meta-llama-3-3-70b-instruct).
 nlp_model = spark.conf.get("nlp_model")
 
 
 @dp.table(
-    name="stt_nlp_analysis_ai_query",
+    name="silver_audio_nlp_ai_query",
     cluster_by=["_ingested_date"],
-    comment="Gold layer: NLP enrichment via ai_query() against an external model serving "
+    comment="Silver layer: NLP enrichment via ai_query() against a Databricks Foundation Model "
             "endpoint. Routes each NLP task (sentiment, summary, entities, topic, translation) "
-            "through a custom or third-party model rather than using built-in Databricks AI "
+            "through an external model rather than using built-in Databricks AI "
             "SQL functions. The endpoint is driven by the nlp_model pipeline parameter.",
 )
-def stt_nlp_analysis_ai_query():
+def silver_audio_nlp_ai_query():
     """
-    Gold layer: NLP enrichment via an external model endpoint.
+    Silver layer: NLP enrichment via a Databricks Foundation Model endpoint.
 
     Source:
         {catalog}.{schema}.silver_audio_transcription
