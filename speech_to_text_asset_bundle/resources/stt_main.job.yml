@@ -1,0 +1,72 @@
+# Main orchestration job for speech_to_text_asset_bundle.
+#
+# Runs the full end-to-end pipeline in three sequential steps:
+#
+#   1. run_ingestion_pipeline  — picks up new audio files from the Volume,
+#                                transcribes them with Whisper (ai_query),
+#                                and writes silver_audio_transcription.
+#
+#   2. run_nlp_pipeline        — enriches every new transcription and writes:
+#                                  • silver_audio_nlp_ai_func  (AI SQL functions)
+#                                  • silver_audio_nlp_ai_query (Foundation Model)
+#
+#   3. evaluate_nlp_quality    — compares the two NLP implementations head-to-head
+#                                using MLflow GenAI evaluation and logs the results
+#                                to /Shared/speech-to-text/nlp-quality-evaluation.
+#
+# Both pipelines run a triggered update: they process all pending data since the
+# last checkpoint, then stop. No always-on compute is required.
+
+resources:
+  jobs:
+    stt_main:
+      name: stt_main
+
+      # Job-level parameters — overridden per target in databricks.yml.
+      # Values are injected into the evaluation notebook via base_parameters below.
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+
+      tasks:
+        # ── Step 1: ingest audio and produce transcriptions ───────────────────
+        # Auto Loader detects new files in the Unity Catalog Volume,
+        # calls the Whisper endpoint via ai_query(), and appends rows to
+        # silver_audio_transcription. Runs on serverless compute.
+        - task_key: run_ingestion_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.stt_audio_transcription.id}
+
+        # ── Step 2: NLP enrichment ────────────────────────────────────────────
+        # Runs only after the ingestion update succeeds.
+        # Reads the new transcription rows and produces both silver NLP tables.
+        - task_key: run_nlp_pipeline
+          depends_on:
+            - task_key: run_ingestion_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.stt_nlp_enrichment.id}
+
+        # ── Step 3: evaluate NLP quality via MLflow ───────────────────────────
+        # Runs only after the NLP pipeline update succeeds.
+        # Reads silver_audio_nlp_ai_func and silver_audio_nlp_ai_query,
+        # scores both with deterministic validators and LLM judges,
+        # and logs results to the MLflow experiment.
+        - task_key: evaluate_nlp_quality
+          depends_on:
+            - task_key: run_nlp_pipeline
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/stt_nlp_evaluation/evaluation/nlp_quality_evaluation.py
+            base_parameters:
+              catalog: "{{job.parameters.catalog}}"
+              schema:  "{{job.parameters.schema}}"
+          environment_key: serverless_env
+
+      # Serverless Python environment for the evaluation notebook.
+      # Requires mlflow[databricks] >= 3.1.0 — install it once on the cluster
+      # by un-commenting the %pip cell at the top of the notebook.
+      environments:
+        - environment_key: serverless_env
+          spec:
+            client: "1"

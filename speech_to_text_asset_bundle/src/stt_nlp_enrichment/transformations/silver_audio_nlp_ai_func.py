@@ -86,5 +86,8 @@ def silver_audio_nlp_ai_func():
             "ai_translate(transcription_text, 'Italian') AS translation_it",
 
             "current_timestamp() AS _analyzed_at",
+
+            # Indicates the NLP method used to produce this row
+            "'ai_functions' AS _nlp_model",
         )
     )
