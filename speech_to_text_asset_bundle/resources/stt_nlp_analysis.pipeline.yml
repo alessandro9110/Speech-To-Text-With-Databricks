@@ -17,6 +17,9 @@ resources:
       configuration:
         catalog: ${var.catalog}
         schema: ${var.schema}
+        # Name of the external model serving endpoint used for NLP inference via ai_query().
+        # Driven by var.gpt_model defined in databricks.yml.
+        nlp_model: ${var.nlp_model}
 
       libraries:
         - glob:

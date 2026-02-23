@@ -1,5 +1,5 @@
 from pyspark import pipelines as dp
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, trim
 
 # Pipeline-level parameters set in stt_nlp_analysis.pipeline.yml
 catalog = spark.conf.get("catalog")
@@ -26,7 +26,7 @@ ENTITY_LABELS_SQL = "array('person', 'organization', 'location', 'date', 'amount
             "named entities (ai_extract), topic classification (ai_classify) "
             "and Italian translation (ai_translate).",
 )
-def stt_nlp_analysis():
+def stt_nlp_analysis_ai_func():
     """
     Gold layer: NLP enrichment of transcription text via Databricks AI functions.
 
@@ -54,7 +54,7 @@ def stt_nlp_analysis():
 
         # Skip records where transcription is absent or empty before calling AI endpoints
         .filter(col("transcription_text").isNotNull())
-        .filter(col("transcription_text") != "")
+        .filter(trim(col("transcription_text")) != "")
 
         # ── NLP enrichment via Databricks AI SQL functions ────────────────────
         # selectExpr bridges PySpark streaming with SQL AI functions.

@@ -22,7 +22,7 @@ variables:
   stt_model:
     description: Name of the Whisper Model Serving endpoint used by the pipeline for audio transcription via ai_query().
     default: stt-whisper-large-v3
-  gpt_model:
+  nlp_model:
     description: Name of the GPT Model Serving endpoint used for text generation and NLP tasks via ai_query().
     default: stt-gpt-5-2
 
@@ -87,7 +87,7 @@ resources:
           group_name: users
 
     gpt_endpoint:
-      name: "${var.gpt_model}"
+      name: "${var.nlp_model}"
       description: >-
         GPT 5.2 language model serving endpoint from system.ai. Used for text
         generation and NLP tasks callable via ai_query() from pipelines or notebooks.
@@ -120,7 +120,7 @@ resources:
           enabled: true
           catalog_name: ${var.catalog}
           schema_name: ${var.schema}
-          table_name_prefix: ${var.gpt_model}
+          table_name_prefix: ${var.nlp_model}
         usage_tracking_config:
           enabled: true
 
@@ -168,11 +168,12 @@ targets:
             schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
             stt_model: ${var.stt_model}
 
-        stt_ai_func_nlp_analysis:
-          name: stt_ai_func_nlp_analysis
+        stt_nlp_analysis:
+          name: stt_nlp_analysis
           configuration:
             catalog: ${var.catalog}
             schema: ${var.schema}
+            nlp_model: ${var.nlp_model}
 
       schemas:
         dev:
@@ -222,11 +223,12 @@ targets:
             schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
             stt_model: ${var.stt_model}
 
-        stt_ai_func_nlp_analysis:
-          name: stt_ai_func_nlp_analysis
+        stt_nlp_analysis:
+          name: stt_nlp_analysis
           configuration:
             catalog: ${var.catalog}
             schema: ${var.schema}
+            nlp_model: ${var.nlp_model}
 
       schemas:
         prod:
