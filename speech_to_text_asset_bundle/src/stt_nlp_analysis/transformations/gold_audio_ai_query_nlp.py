@@ -34,7 +34,7 @@ def stt_nlp_analysis_ai_query():
         - Filter out NULL or empty transcriptions before calling the endpoint
         - ai_query(nlp_model, prompt + text) → sentiment   STRING
         - ai_query(nlp_model, prompt + text) → summary     STRING
-        - ai_query(nlp_model, prompt + text) → entities    STRING (JSON — parse downstream)
+        - ai_query(nlp_model, prompt + text) → entities    STRUCT<person, organization, location, date, amount> (parsed via from_json)
         - ai_query(nlp_model, prompt + text) → topic       STRING
         - ai_query(nlp_model, prompt + text) → translation_it STRING
 
@@ -74,13 +74,19 @@ def stt_nlp_analysis_ai_query():
             f"  CONCAT('Summarize the following text in one concise sentence.\\n\\n',"
             f"  transcription_text)) AS summary",
 
-            # Entities: return a JSON string with keys person, organization, location, date, amount
-            f"ai_query('{nlp_model}',"
-            f"  CONCAT('Extract named entities from the following text. "
-            f"Return valid JSON with keys: person, organization, location, date, amount. "
+            # Entities: parse JSON response into STRUCT matching ai_extract() output schema.
+            # from_json() converts the model's JSON string into a typed STRUCT so that
+            # the column type is identical to the ai_func version of this table.
+            f"from_json("
+            f"  ai_query('{nlp_model}',"
+            f"    CONCAT('Extract named entities from the following text. "
+            f"Return ONLY valid JSON with keys: person, organization, location, date, amount. "
             f"Each key maps to an array of extracted strings. "
-            f"Return an empty array if nothing is found.\\n\\n',"
-            f"  transcription_text)) AS entities",
+            f"Return an empty array [] if nothing is found. No extra text.\\n\\n',"
+            f"    transcription_text)),"
+            f"  'struct<person:array<string>,organization:array<string>,"
+            f"location:array<string>,date:array<string>,amount:array<string>>'"
+            f") AS entities",
 
             # Topic: return one of the predefined business topics
             f"ai_query('{nlp_model}',"
