@@ -1,0 +1,21 @@
+# NLP quality evaluation pipeline for speech_to_text_asset_bundle.
+# Runs the MLflow GenAI evaluation notebook that compares the two NLP implementations
+# (silver_audio_nlp_ai_func vs silver_audio_nlp_ai_query) using deterministic validators
+# and LLM judges, and logs results to /Shared/speech-to-text/nlp-quality-evaluation.
+
+resources:
+  pipelines:
+    stt_nlp_evaluation:
+      name: stt_nlp_evaluation
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+
+      # Pipeline-level parameters accessible via spark.conf.get() in the evaluation notebook.
+      configuration:
+        catalog: ${var.catalog}
+        schema: ${var.schema}
+
+      libraries:
+        - glob:
+            include: ../src/stt_nlp_evaluation/evaluation/**

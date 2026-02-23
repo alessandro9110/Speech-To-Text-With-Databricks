@@ -1,65 +1,42 @@
-# Databricks notebook source
+# NLP Quality Evaluation
+#
+# Evaluates the quality of NLP enrichment produced by the speech-to-text pipeline,
+# comparing the two NLP implementations head-to-head:
+#
+#   silver_audio_nlp_ai_func   — Databricks built-in AI SQL functions
+#   silver_audio_nlp_ai_query  — External LLM endpoint (nlp_model) via ai_query()
+#
+# Both tables share the same output schema:
+#   sentiment · summary · entities · topic · translation_it
+#
+# Results are logged to an MLflow experiment so you can compare runs over time
+# in the MLflow UI.
+#
+# Run as part of the stt_nlp_evaluation pipeline triggered by stt_main.
 
-# MAGIC %md
-# MAGIC # NLP Quality Evaluation
-# MAGIC
-# MAGIC Evaluates the quality of NLP enrichment produced by the speech-to-text pipeline,
-# MAGIC comparing the two NLP implementations head-to-head:
-# MAGIC
-# MAGIC | Implementation | Table | How AI is called |
-# MAGIC |---|---|---|
-# MAGIC | **ai_func** | `silver_audio_nlp_ai_func` | Databricks built-in AI SQL functions |
-# MAGIC | **ai_query** | `silver_audio_nlp_ai_query` | External LLM endpoint (`nlp_model`) |
-# MAGIC
-# MAGIC Both tables share the same output schema:
-# MAGIC `sentiment · summary · entities · topic · translation_it`
-# MAGIC
-# MAGIC Results are logged to an MLflow experiment so you can compare runs over time
-# MAGIC in the MLflow UI.
-
-# COMMAND ----------
-
-# DBTITLE 1,Install / verify MLflow version
-# Requires mlflow[databricks] >= 3.1.0
-# Run this cell once if the cluster doesn't have the right version installed.
-# %pip install --upgrade "mlflow[databricks]>=3.1.0" --quiet
-
-# COMMAND ----------
-
-# DBTITLE 1,Imports
 import mlflow
 from mlflow.genai.scorers import scorer
 from mlflow.genai.judges import meets_guidelines
 from mlflow.entities import Feedback
 
-# COMMAND ----------
-
-# DBTITLE 1,MLflow Setup
-mlflow.set_tracking_uri("databricks")
-mlflow.set_experiment("/Shared/speech-to-text/nlp-quality-evaluation")
-
-# COMMAND ----------
-
-# DBTITLE 1,Configuration
-# ── Injected by stt_main job via notebook_task.base_parameters ───────────────
-# When run from the job these are set automatically from the bundle variables
-# (var.catalog / var.schema), so dev uses "audio" and prod uses "prod".
-# When run interactively, dbutils.widgets.get() falls back to the defaults below.
-dbutils.widgets.text("catalog", "speech_to_text")
-dbutils.widgets.text("schema",  "audio")
-
-CATALOG     = dbutils.widgets.get("catalog")
-SCHEMA      = dbutils.widgets.get("schema")
+# ── Configuration ─────────────────────────────────────────────────────────────
+# Injected by the stt_nlp_evaluation pipeline configuration block.
+# When triggered by stt_main, catalog and schema are set from the bundle
+# variables (var.catalog / var.schema), so dev uses "audio" and prod uses "prod".
+# When run interactively, spark.conf.get() falls back to the defaults below.
+CATALOG     = spark.conf.get("catalog", "speech_to_text")
+SCHEMA      = spark.conf.get("schema",  "audio")
 SAMPLE_SIZE = 50      # Number of rows to evaluate per NLP implementation
-# ─────────────────────────────────────────────────────────────────────────────
 
 # Valid label sets — must stay in sync with the pipeline prompt definitions
 VALID_SENTIMENTS = {"positive", "negative", "neutral", "mixed"}
 VALID_TOPICS = {"financial", "legal", "medical", "operational", "general"}
 
-# COMMAND ----------
+# ── MLflow Setup ──────────────────────────────────────────────────────────────
+mlflow.set_tracking_uri("databricks")
+mlflow.set_experiment("/Shared/speech-to-text/nlp-quality-evaluation")
 
-# DBTITLE 1,Load Evaluation Data from Silver Tables
+# ── Load Evaluation Data ──────────────────────────────────────────────────────
 
 
 def load_eval_data(table_name, sample_size):
@@ -112,27 +89,13 @@ def load_eval_data(table_name, sample_size):
     return records
 
 
-ai_func_data = load_eval_data("silver_audio_nlp_ai_func", SAMPLE_SIZE)
+ai_func_data  = load_eval_data("silver_audio_nlp_ai_func",  SAMPLE_SIZE)
 ai_query_data = load_eval_data("silver_audio_nlp_ai_query", SAMPLE_SIZE)
 
 print(f"Rows loaded — ai_func : {len(ai_func_data)}")
 print(f"Rows loaded — ai_query: {len(ai_query_data)}")
 
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Scorers
-# MAGIC
-# MAGIC Two scorer categories:
-# MAGIC
-# MAGIC 1. **Format validators** – deterministic checks (no LLM cost).
-# MAGIC    Ensure each output field contains a valid, non-empty value.
-# MAGIC 2. **Quality judges** – LLM-based checks using `meets_guidelines()`.
-# MAGIC    Assess whether the NLP output is semantically correct for the transcription.
-
-# COMMAND ----------
-
-# DBTITLE 1,Format Validation Scorers
+# ── Format Validation Scorers (deterministic, no LLM cost) ───────────────────
 
 
 @scorer
@@ -199,9 +162,7 @@ def outputs_non_empty(outputs):
     ]
 
 
-# COMMAND ----------
-
-# DBTITLE 1,Quality Scorers (LLM Judges via meets_guidelines)
+# ── Quality Scorers (LLM Judges via meets_guidelines) ────────────────────────
 
 
 @scorer
@@ -261,67 +222,42 @@ def topic_accuracy(inputs, outputs):
     )
 
 
-# COMMAND ----------
-
-# DBTITLE 1,Assemble Scorer List
+# ── Evaluation Runs ───────────────────────────────────────────────────────────
+# Each mlflow.genai.evaluate() call creates a named MLflow run under the
+# experiment /Shared/speech-to-text/nlp-quality-evaluation.
+# Open the experiment in the MLflow UI to compare runs side-by-side.
 
 ALL_SCORERS = [
-    # ── Format validators (deterministic, no LLM cost) ────────────────────────
     sentiment_format,
     topic_format,
     entities_completeness,
     outputs_non_empty,
-    # ── Quality judges (LLM-based) ────────────────────────────────────────────
     summary_quality,
     sentiment_consistency,
     topic_accuracy,
 ]
 
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Evaluation Runs
-# MAGIC
-# MAGIC Each `mlflow.genai.evaluate()` call creates a named MLflow run under the
-# MAGIC experiment `/Shared/speech-to-text/nlp-quality-evaluation`.
-# MAGIC Open the experiment in the MLflow UI to compare runs side-by-side.
-
-# COMMAND ----------
-
-# DBTITLE 1,Evaluate — ai_func Implementation
-
 print("Evaluating silver_audio_nlp_ai_func ...")
-
 with mlflow.start_run(run_name="silver_audio_nlp_ai_func"):
     ai_func_results = mlflow.genai.evaluate(
         data=ai_func_data,
         scorers=ALL_SCORERS,
         # predict_fn is omitted: outputs are pre-computed from the pipeline table
     )
-
 print(f"  Run ID : {ai_func_results.run_id}")
 print(f"  Metrics: {ai_func_results.metrics}")
 
-# COMMAND ----------
-
-# DBTITLE 1,Evaluate — ai_query Implementation
-
 print("Evaluating silver_audio_nlp_ai_query ...")
-
 with mlflow.start_run(run_name="silver_audio_nlp_ai_query"):
     ai_query_results = mlflow.genai.evaluate(
         data=ai_query_data,
         scorers=ALL_SCORERS,
         # predict_fn is omitted: outputs are pre-computed from the pipeline table
     )
-
 print(f"  Run ID : {ai_query_results.run_id}")
 print(f"  Metrics: {ai_query_results.metrics}")
 
-# COMMAND ----------
-
-# DBTITLE 1,Compare Results
-
+# ── Compare Results ───────────────────────────────────────────────────────────
 all_metrics = sorted(
     set(ai_func_results.metrics) | set(ai_query_results.metrics)
 )

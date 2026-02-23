@@ -135,17 +135,11 @@ targets:
             schema: ${var.schema}
             nlp_model: ${var.nlp_model}
 
-      jobs:
-        stt_main:
-          # NOTE: job-level parameters are forwarded ONLY to notebook and script tasks
-          # via base_parameters / CLI args. Pipeline tasks (run_ingestion_pipeline,
-          # run_nlp_pipeline) do NOT receive these — they use the pipeline configuration
-          # block above, which is resolved at bundle deploy time.
-          parameters:
-            - name: catalog
-              default: ${var.catalog}
-            - name: schema
-              default: ${var.schema}
+        stt_nlp_evaluation:
+          name: stt_nlp_evaluation
+          configuration:
+            catalog: ${var.catalog}
+            schema: ${var.schema}
 
       schemas:
         dev:
@@ -202,17 +196,11 @@ targets:
             schema: ${var.schema}
             nlp_model: ${var.nlp_model}
 
-      jobs:
-        stt_main:
-          # NOTE: job-level parameters are forwarded ONLY to notebook and script tasks
-          # via base_parameters / CLI args. Pipeline tasks (run_ingestion_pipeline,
-          # run_nlp_pipeline) do NOT receive these — they use the pipeline configuration
-          # block above, which is resolved at bundle deploy time.
-          parameters:
-            - name: catalog
-              default: ${var.catalog}
-            - name: schema
-              default: ${var.schema}
+        stt_nlp_evaluation:
+          name: stt_nlp_evaluation
+          configuration:
+            catalog: ${var.catalog}
+            schema: ${var.schema}
 
       schemas:
         prod:
