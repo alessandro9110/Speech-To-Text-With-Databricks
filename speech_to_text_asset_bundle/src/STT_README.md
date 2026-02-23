@@ -16,7 +16,8 @@ independently without affecting the other.
 The naming convention applied across this project separates **what** from **how**:
 
 - **Pipeline folder / resource key** (`stt_audio_ingestion`, `stt_nlp_analysis`) — describes the **business capability** of the pipeline, independent of the technology used to implement it.
-- **Transformation file name** (`bronze_audio_files.py`, `silver_audio_files.py`, `gold_audio_ai_func_nlp.py`) — describes **how** the transformation is implemented. The `ai_func` segment in `gold_audio_ai_func_nlp.py` signals that the Gold layer is built on Databricks AI SQL functions. If the implementation were replaced (e.g. with a custom model), only the file name and its content would change — the pipeline name stays the same.
+- **Transformation file name** (`bronze_audio_files.py`, `silver_audio_files.py`, `gold_audio_ai_func_nlp.py`) — describes **how** the transformation is implemented. The `ai_func` segment in `gold_audio_ai_func_nlp.py` signals that the Gold layer is built on Databricks AI SQL functions. The `ai_query` segment in the experimental counterpart signals an external model endpoint. If the implementation were swapped, only the file name and content change — the pipeline name stays the same.
+- **`_experimental/` folder** — scripts here are **not picked up** by the pipeline library glob (which covers `transformations/**` only). They serve as ready-to-activate alternative implementations. To activate one, move it into `transformations/` and remove or rename the current active file.
 
 ---
 
@@ -183,7 +184,7 @@ configuration:
 `catalog` and `schema` are used to build the fully-qualified cross-pipeline source reference:
 `{catalog}.{schema}.silver_audio_transcription`.
 
-### Gold: `stt_nlp_analysis`
+### Gold: `stt_nlp_analysis_ai_func`
 
 **File:** `stt_nlp_analysis/transformations/gold_audio_ai_func_nlp.py`
 
@@ -198,7 +199,7 @@ configuration:
         │  ai_classify(transcription_text, labels)     → topic
         │  ai_translate(transcription_text, 'Italian') → translation_it
         ▼
-  stt_nlp_analysis  (streaming Delta table — Gold layer)
+  stt_nlp_analysis_ai_func  (streaming Delta table — Gold layer)
 ```
 
 Records with NULL or empty `transcription_text` are filtered out before any AI function is
@@ -281,14 +282,16 @@ top of `gold_audio_ai_func_nlp.py` — no changes to the pipeline YAML or `datab
 
 ```text
 src/
-├── README.md                                      # this file
+├── STT_README.md                                  # this file
 ├── stt_audio_ingestion/
 │   └── transformations/
 │       ├── bronze_audio_files.py                  # Bronze: Auto Loader → bronze_audio_files_raw
 │       └── silver_audio_files.py                  # Silver: Whisper transcription → silver_audio_transcription
 └── stt_nlp_analysis/
+    ├── _experimental/                             # NOT included in pipeline glob (transformations/**)
+    │   └── gold_audio_ai_query_nlp.py             # Draft: same NLP tasks via ai_query() + external model
     └── transformations/
-        └── gold_audio_ai_func_nlp.py              # Gold: AI SQL functions → stt_nlp_analysis
+        └── gold_audio_ai_func_nlp.py              # ACTIVE — Gold: AI SQL functions → stt_nlp_analysis_ai_func
 ```
 
 ---
