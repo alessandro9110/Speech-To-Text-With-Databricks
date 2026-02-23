@@ -4,7 +4,7 @@ from pyspark.sql.functions import col, regexp_extract, lower
 # Supported audio extensions (must match the pathGlobFilter in bronze)
 SUPPORTED_EXTENSIONS = ["wav", "mp3", "flac", "m4a", "ogg", "mp4"]
 
-# Pipeline-level parameters set in stt_bundle_audio_etl.pipeline.yml
+# Pipeline-level parameters set in stt_audio_ingestion.pipeline.yml
 # stt_model: name of the Whisper Model Serving endpoint used for transcription
 stt_model = spark.conf.get("stt_model")
 
@@ -31,7 +31,7 @@ def silver_audio_transcription():
     Pipeline parameter:
         stt_model  (spark.conf)  Name of the Whisper Model Serving endpoint.
                                  Driven by var.stt_model in databricks.yml,
-                                 injected via stt_bundle_audio_etl.pipeline.yml > configuration.
+                                 injected via stt_audio_ingestion.pipeline.yml > configuration.
     """
     return (
         spark.readStream.table("bronze_audio_files_raw")
