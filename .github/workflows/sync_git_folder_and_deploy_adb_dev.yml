@@ -61,6 +61,14 @@ jobs:
         # Set your workspace path and branch name here
         run: databricks repos update /Workspace/Shared/Speech-To-Text-With-Databricks --branch dev
         
+      - name: Validate asset bundle for dev
+        working-directory: ./speech_to_text_asset_bundle
+        run: databricks bundle validate --target dev --var="service_principal_id=${{ secrets.DATABRICKS_CLIENT_ID }}"
+        
+      - name: Plan asset bundle for dev
+        working-directory: ./speech_to_text_asset_bundle
+        run: databricks bundle plan --target dev --var="service_principal_id=${{ secrets.DATABRICKS_CLIENT_ID }}"
+        
       - name: Deploy asset bundle to dev
         working-directory: ./speech_to_text_asset_bundle
         run: databricks bundle deploy --auto-approve --target dev --var="service_principal_id=${{ secrets.DATABRICKS_CLIENT_ID }}"
