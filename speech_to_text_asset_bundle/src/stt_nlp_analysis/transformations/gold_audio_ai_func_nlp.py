@@ -23,7 +23,8 @@ ENTITY_LABELS_SQL = "array('person', 'organization', 'location', 'date', 'amount
             "Reads silver_audio_transcription from the stt_audio_ingestion pipeline "
             "and applies Databricks AI SQL functions to produce: "
             "sentiment (ai_analyze_sentiment), summary (ai_summarize), "
-            "named entities (ai_extract) and topic classification (ai_classify).",
+            "named entities (ai_extract), topic classification (ai_classify) "
+            "and Italian translation (ai_translate).",
 )
 def stt_nlp_analysis():
     """
@@ -42,6 +43,7 @@ def stt_nlp_analysis():
                                                        location, date, amount>
                                                 each field is ARRAY<STRING>
         - ai_classify()           → topic:      STRING (one of TOPIC_LABELS)
+        - ai_translate()          → translation_it: STRING (Italian translation)
 
     Pipeline parameters:
         catalog  (spark.conf)  Unity Catalog catalog name.
@@ -56,7 +58,7 @@ def stt_nlp_analysis():
 
         # ── NLP enrichment via Databricks AI SQL functions ────────────────────
         # selectExpr bridges PySpark streaming with SQL AI functions.
-        # All four functions call Databricks-managed foundation models under the hood
+        # All five functions call Databricks-managed foundation models under the hood
         # — no endpoint configuration is required.
         # ─────────────────────────────────────────────────────────────────────
         .selectExpr(
@@ -79,6 +81,9 @@ def stt_nlp_analysis():
 
             # Classify the transcription into a single business topic
             f"ai_classify(transcription_text, {TOPIC_LABELS_SQL}) AS topic",
+
+            # Translate the transcription text into Italian
+            "ai_translate(transcription_text, 'Italian') AS translation_it",
 
             "current_timestamp() AS _analyzed_at",
         )

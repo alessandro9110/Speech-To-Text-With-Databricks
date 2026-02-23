@@ -1,7 +1,7 @@
 # NLP analysis pipeline for speech_to_text_asset_bundle.
 # Reads silver_audio_transcription produced by stt_audio_ingestion and
 # enriches every transcription record with Databricks AI SQL functions
-# (sentiment, summarization, entity extraction, topic classification).
+# (sentiment, summarization, entity extraction, topic classification, Italian translation).
 # This pipeline is intentionally decoupled from the ingestion pipeline
 # so that each can be deployed, scaled and scheduled independently.
 
