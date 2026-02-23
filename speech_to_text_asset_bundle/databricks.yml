@@ -23,8 +23,8 @@ variables:
     description: Name of the Whisper Model Serving endpoint used by the pipeline for audio transcription via ai_query().
     default: stt-whisper-large-v3
   nlp_model:
-    description: Name of the GPT Model Serving endpoint used for text generation and NLP tasks via ai_query().
-    default: stt-gpt-5-2
+    description: Name of the Databricks Foundation Model API endpoint used for NLP tasks via ai_query(). Must be an already-available shared endpoint (no deployment required).
+    default: databricks-meta-llama-3-3-70b-instruct
 
 
 # ============================================================
@@ -43,6 +43,9 @@ resources:
         Whisper Large V3 speech-to-text serving endpoint. Transcribes raw audio
         files (wav, mp3, flac, m4a, ogg, mp4) uploaded to the Unity Catalog Volume
         and called by the silver_audio_transcription pipeline table via ai_query().
+      tags:
+        - key: project
+          value: speech-to-text
 
       config:
         served_entities:
@@ -86,49 +89,6 @@ resources:
         - level: CAN_QUERY
           group_name: users
 
-    gpt_endpoint:
-      name: "${var.nlp_model}"
-      description: >-
-        GPT 5.2 language model serving endpoint from system.ai. Used for text
-        generation and NLP tasks callable via ai_query() from pipelines or notebooks.
-
-      config:
-        served_entities:
-          # --------------------------------------------------------
-          # GPT 5.2 — Foundation Model from system.ai
-          # --------------------------------------------------------
-          # system.ai is the Databricks-managed Unity Catalog that
-          # hosts pre-built Foundation Models (no model registration
-          # required).
-          # --------------------------------------------------------
-          - entity_name: system.ai.databricks-gpt-5-2
-            entity_version: "1"
-            # GPU_SMALL: 1x T4 GPU — sufficient for text generation inference
-            # Options: GPU_SMALL | GPU_MEDIUM | GPU_LARGE | MULTIGPU_MEDIUM
-            workload_type: GPU_SMALL
-            # Small cluster size; scale up to Medium/Large for higher throughput
-            workload_size: Small
-            # Scale to zero when no traffic to avoid idle GPU costs
-            scale_to_zero_enabled: true
-
-      # ── AI Gateway ───────────────────────────────────────────────────────────
-      # Inference tables log every request and response to a Delta table in
-      # Unity Catalog at: {catalog}.{schema}.{table_name_prefix}_payload
-      # ─────────────────────────────────────────────────────────────────────
-      ai_gateway:
-        inference_table_config:
-          enabled: true
-          catalog_name: ${var.catalog}
-          schema_name: ${var.schema}
-          table_name_prefix: ${var.nlp_model}
-        usage_tracking_config:
-          enabled: true
-
-      permissions:
-        # Allow all workspace users to query the endpoint
-        - level: CAN_QUERY
-          group_name: users
-
 
 # ============================================================
 # TARGETS
@@ -150,7 +110,7 @@ targets:
       trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
       jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
       tags:
-        department: finance
+        project: speech-to-text
 
     # Note: workspace.host is not specified here because the bundle automatically uses the workspace where the code is deployed (based on your Databricks CLI profile or current context)
     workspace:
@@ -199,7 +159,7 @@ targets:
       trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
       jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
       tags:
-        department: finance
+        project: speech-to-text
 
     mode: production
 
