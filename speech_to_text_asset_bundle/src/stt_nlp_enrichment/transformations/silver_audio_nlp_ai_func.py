@@ -20,7 +20,7 @@ ENTITY_LABELS_SQL = "array('person', 'organization', 'location', 'date', 'amount
     name="silver_audio_nlp_ai_func",
     cluster_by=["_ingested_date"],
     comment="Silver layer: NLP enrichment of transcribed audio. "
-            "Reads silver_audio_transcription from the stt_audio_ingestion pipeline "
+            "Reads silver_audio_transcription from the stt_audio_transcription pipeline "
             "and applies Databricks AI SQL functions to produce: "
             "sentiment (ai_analyze_sentiment), summary (ai_summarize), "
             "named entities (ai_extract), topic classification (ai_classify) "
