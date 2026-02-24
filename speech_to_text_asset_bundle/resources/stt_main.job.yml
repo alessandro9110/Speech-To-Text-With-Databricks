@@ -65,9 +65,9 @@ resources:
         - task_key: evaluate_nlp_quality
           depends_on:
             - task_key: run_nlp_enrichment_pipeline
-          spark_python_task:
-            python_file: ${workspace.root_path}/files/src/stt_nlp_evaluation/evaluation/nlp_quality_evaluation.py
-            spark_conf:
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/stt_nlp_evaluation/evaluation/nlp_quality_evaluation.py
+            base_parameters:
               catalog: "{{job.parameters.catalog}}"
               schema:  "{{job.parameters.schema}}"
           environment_key: serverless_env
