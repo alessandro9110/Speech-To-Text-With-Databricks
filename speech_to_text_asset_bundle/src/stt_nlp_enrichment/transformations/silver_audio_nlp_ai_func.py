@@ -1,7 +1,7 @@
 from pyspark import pipelines as dp
 from pyspark.sql.functions import col, trim
 
-# Pipeline-level parameters set in stt_nlp_analysis.pipeline.yml
+# Pipeline-level parameters set in resources/stt_nlp_enrichment.pipeline.yml
 catalog = spark.conf.get("catalog")
 schema = spark.conf.get("schema")
 
