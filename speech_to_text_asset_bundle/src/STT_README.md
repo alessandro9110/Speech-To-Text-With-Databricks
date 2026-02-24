@@ -50,8 +50,7 @@ The three Databricks resources that back this job are:
 | --- | --- | --- |
 | `stt_audio_transcription` | Spark Declarative Pipeline | Bronze → Silver transcription |
 | `stt_nlp_enrichment` | Spark Declarative Pipeline | Silver NLP enrichment (two implementations) |
-| `stt_nlp_evaluation` | Spark Declarative Pipeline | MLflow GenAI evaluation of both NLP implementations |
-| `stt_main` | Job | Orchestrates the three pipelines in sequence |
+| `stt_main` | Job | Orchestrates the two pipelines then runs the MLflow evaluation notebook |
 
 Configuration — catalog name, schema, model endpoint names — is driven by the bundle variables
 in `databricks.yml` and flows automatically into each resource at deploy time.

@@ -20,12 +20,14 @@ from mlflow.genai.judges import meets_guidelines
 from mlflow.entities import Feedback
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-# Injected by the stt_nlp_evaluation pipeline configuration block.
-# When triggered by stt_main, catalog and schema are set from the bundle
-# variables (var.catalog / var.schema), so dev uses "audio" and prod uses "prod".
-# When run interactively, spark.conf.get() falls back to the defaults below.
-CATALOG     = spark.conf.get("catalog", "speech_to_text")
-SCHEMA      = spark.conf.get("schema",  "audio")
+# Injected by stt_main via notebook_task.base_parameters → {{job.parameters.X}}.
+# When triggered by the job, catalog and schema are set from the bundle variables
+# (var.catalog / var.schema), so dev uses "audio" and prod uses "prod".
+# When run interactively, dbutils.widgets.get() falls back to the defaults below.
+dbutils.widgets.text("catalog", "speech_to_text")
+dbutils.widgets.text("schema",  "audio")
+CATALOG     = dbutils.widgets.get("catalog")
+SCHEMA      = dbutils.widgets.get("schema")
 SAMPLE_SIZE = 50      # Number of rows to evaluate per NLP implementation
 
 # Valid label sets — must stay in sync with the pipeline prompt definitions
