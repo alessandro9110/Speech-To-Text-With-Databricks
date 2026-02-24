@@ -22,6 +22,9 @@ variables:
   stt_model:
     description: Name of the Whisper Model Serving endpoint used by the pipeline for audio transcription via ai_query().
     default: stt-whisper-large-v3
+  nlp_model:
+    description: Name of the Databricks Foundation Model API endpoint used for NLP tasks via ai_query(). Must be an already-available shared endpoint (no deployment required).
+    default: databricks-meta-llama-3-3-70b-instruct
 
 
 # ============================================================
@@ -40,6 +43,9 @@ resources:
         Whisper Large V3 speech-to-text serving endpoint. Transcribes raw audio
         files (wav, mp3, flac, m4a, ogg, mp4) uploaded to the Unity Catalog Volume
         and called by the silver_audio_transcription pipeline table via ai_query().
+      tags:
+        - key: project
+          value: speech-to-text
 
       config:
         served_entities:
@@ -74,7 +80,7 @@ resources:
           enabled: true
           catalog_name: ${var.catalog}
           schema_name: ${var.schema}
-          table_name_prefix: inference_${var.stt_model}
+          table_name_prefix: ${var.stt_model}
         usage_tracking_config:
           enabled: true
 
@@ -104,7 +110,7 @@ targets:
       trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
       jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
       tags:
-        department: finance
+        project: speech-to-text
 
     # Note: workspace.host is not specified here because the bundle automatically uses the workspace where the code is deployed (based on your Databricks CLI profile or current context)
     workspace:
@@ -114,14 +120,30 @@ targets:
     # define resouces like: pipelines, schemas, volumes etc.
     resources:
       pipelines:
-        stt_audio_ingestion:
-          name: stt_audio_ingestion
+        stt_audio_transcription:
+          name: stt_audio_transcription
           configuration:
             catalog: ${var.catalog}
             schema: ${var.schema}
             schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
             stt_model: ${var.stt_model}
 
+        stt_nlp_enrichment:
+          name: stt_nlp_enrichment
+          configuration:
+            catalog: ${var.catalog}
+            schema: ${var.schema}
+            nlp_model: ${var.nlp_model}
+
+      jobs:
+        stt_main:
+          name: stt_main
+          parameters:
+            - name: catalog
+              default: ${var.catalog}
+            - name: schema
+              default: ${var.schema}
+      
       schemas:
         dev:
           name: ${var.schema}
@@ -146,7 +168,7 @@ targets:
       trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
       jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
       tags:
-        department: finance
+        project: speech-to-text
 
     mode: production
 
@@ -162,13 +184,31 @@ targets:
         # define resouces like: schemas etc.
     resources:
       pipelines:
-        stt_audio_ingestion:
-          name: stt_audio_ingestion
+        stt_audio_transcription:
+          name: stt_audio_transcription
           configuration:
             catalog: ${var.catalog}
             schema: ${var.schema}
             schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
             stt_model: ${var.stt_model}
+
+        stt_nlp_enrichment:
+          name: stt_nlp_enrichment
+          configuration:
+            catalog: ${var.catalog}
+            schema: ${var.schema}
+            nlp_model: ${var.nlp_model}
+
+      jobs:
+        stt_main:
+          # NOTE: job-level parameters are forwarded ONLY to notebook and script tasks
+          # via base_parameters. Pipeline tasks do NOT receive these — they use the
+          # pipeline configuration block above, resolved at bundle deploy time.
+          parameters:
+            - name: catalog
+              default: ${var.catalog}
+            - name: schema
+              default: ${var.schema}
 
       schemas:
         prod:

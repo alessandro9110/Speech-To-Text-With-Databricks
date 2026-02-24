@@ -1,0 +1,24 @@
+# NLP enrichment pipeline for speech_to_text_asset_bundle.
+# Reads silver_audio_transcription and enriches every transcription record
+# with AI-based NLP tasks (sentiment, summary, entities, topic, translation).
+# Produces two silver tables comparing Databricks AI SQL functions vs ai_query().
+
+resources:
+  pipelines:
+    stt_nlp_enrichment:
+      name: stt_nlp_enrichment
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+
+      # Pipeline-level parameters accessible via spark.conf.get() in Python transformations
+      configuration:
+        catalog: ${var.catalog}
+        schema: ${var.schema}
+        # Name of the Foundation Model API endpoint used for NLP inference via ai_query().
+        # Driven by var.nlp_model defined in databricks.yml.
+        nlp_model: ${var.nlp_model}
+
+      libraries:
+        - glob:
+            include: ../src/stt_nlp_enrichment/transformations/**
