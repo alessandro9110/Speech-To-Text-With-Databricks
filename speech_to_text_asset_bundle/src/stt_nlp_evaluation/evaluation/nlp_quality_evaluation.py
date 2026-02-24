@@ -34,7 +34,7 @@ VALID_TOPICS = {"financial", "legal", "medical", "operational", "general"}
 
 # ── MLflow Setup ──────────────────────────────────────────────────────────────
 mlflow.set_tracking_uri("databricks")
-mlflow.set_experiment("/Shared/speech-to-text/nlp-quality-evaluation")
+mlflow.set_experiment("/Shared/nlp-quality-evaluation")
 
 # ── Load Evaluation Data ──────────────────────────────────────────────────────
 
