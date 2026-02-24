@@ -65,7 +65,7 @@ resources:
         - task_key: evaluate_nlp_quality
           depends_on:
             - task_key: run_nlp_enrichment_pipeline
-          python_task:
+          spark_python_task:
             python_file: ${workspace.root_path}/files/src/stt_nlp_evaluation/evaluation/nlp_quality_evaluation.py
             base_parameters:
               catalog: "{{job.parameters.catalog}}"
