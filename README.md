@@ -18,11 +18,11 @@ This repository implements an end-to-end speech-to-text (STT) pipeline on Databr
 
 ### What's Implemented
 
-✅ **Audio Ingestion & Transcription** — Auto Loader picks up audio files and Whisper transcribes them
-✅ **NLP Enrichment** — Sentiment, summary, entities, topic, and translation via two parallel implementations
-✅ **MLflow Evaluation** — Side-by-side quality comparison of AI SQL functions vs Foundation Model API
-✅ **Automated CI/CD** — GitHub Actions deploy to Dev and Prod environments
-✅ **Infrastructure as Code** — Databricks Asset Bundle with dev/prod targets
+- ✅ **Audio Ingestion & Transcription** — Auto Loader picks up audio files and Whisper transcribes them
+- ✅ **NLP Enrichment** — Sentiment, summary, entities, topic, and translation via two parallel implementations
+- ✅ **MLflow Evaluation** — Side-by-side quality comparison of AI SQL functions vs Foundation Model API
+- ✅ **Automated CI/CD** — GitHub Actions deploy to Dev and Prod environments
+- ✅ **Infrastructure as Code** — Databricks Asset Bundle with dev/prod targets
 
 ### TODO
 
