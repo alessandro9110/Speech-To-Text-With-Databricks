@@ -111,5 +111,5 @@ src/
 │   ├── silver_audio_nlp_ai_func.py  # NLP via AI SQL functions
 │   └── silver_audio_nlp_ai_query.py # NLP via Foundation Model (ai_query)
 └── stt_nlp_evaluation/evaluation/
-    └── nlp_quality_evaluation.py    # MLflow GenAI evaluation notebook
+    └── nlp_quality_evaluation.ipynb # MLflow GenAI evaluation notebook
 ```
