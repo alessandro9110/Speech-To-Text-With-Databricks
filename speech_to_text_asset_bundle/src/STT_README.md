@@ -30,10 +30,10 @@ You trigger it manually or on a schedule, and it runs the three stages in sequen
 ```text
   stt_main job  (manual trigger or cron schedule)
         │
-        ├─ Step 1: run_ingestion_pipeline
+        ├─ Step 1: run_audio_transcription_pipeline
         │          Picks up new audio files from the Volume and writes silver_audio_transcription
         │
-        ├─ Step 2: run_nlp_pipeline          [waits for Step 1]
+        ├─ Step 2: run_nlp_enrichment_pipeline          [waits for Step 1]
         │          Enriches new transcriptions and writes silver_audio_nlp_ai_func
         │          and silver_audio_nlp_ai_query in parallel
         │
