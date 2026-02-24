@@ -64,7 +64,7 @@ def load_eval_data(table_name, sample_size):
 
     records = []
     for row in df.collect():
-        entities = row["entities"] or {}
+        entities = row["entities"].asDict() if row["entities"] else {}
         records.append(
             {
                 "inputs": {

@@ -135,12 +135,15 @@ targets:
             schema: ${var.schema}
             nlp_model: ${var.nlp_model}
 
-        stt_nlp_evaluation:
-          name: stt_nlp_evaluation
-          configuration:
-            catalog: ${var.catalog}
-            schema: ${var.schema}
-
+      jobs:
+        stt_main:
+          name: stt_main
+          parameters:
+            - name: catalog
+              default: ${var.catalog}
+            - name: schema
+              default: ${var.schema}
+      
       schemas:
         dev:
           name: ${var.schema}
