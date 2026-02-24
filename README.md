@@ -120,7 +120,7 @@ silver_audio_nlp_ai_func            silver_audio_nlp_ai_query
         │                                            │
         └──────────────────┬─────────────────────────┘
                            ▼
-              nlp_quality_evaluation.py
+              nlp_quality_evaluation.ipynb
               (MLflow GenAI evaluation)
 ```
 
