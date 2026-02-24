@@ -69,7 +69,7 @@ in `databricks.yml` and flows automatically into each resource at deploy time.
 >
 > 1. Add `continuous: enabled: true` to `stt_audio_transcription.pipeline.yml` and
 >    `stt_nlp_enrichment.pipeline.yml`.
-> 2. Remove (or delete entirely) the `run_ingestion_pipeline` and `run_nlp_pipeline` tasks from
+> 2. Remove (or delete entirely) the `run_audio_transcription_pipeline` and `run_nlp_enrichment_pipeline` tasks from
 >    `stt_main`. The evaluation notebook can be run on its own schedule or manually.
 >
 > Keep in mind the trade-offs:
