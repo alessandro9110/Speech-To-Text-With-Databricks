@@ -1,4 +1,4 @@
-# Speech-To-Text-With-Databricks
+# Speech To Text With Databricks
 
 A speech-to-text processing solution using **Databricks Asset Bundles** for infrastructure-as-code and **GitHub Actions** for automated CI/CD deployment.
 
