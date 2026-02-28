@@ -25,6 +25,12 @@ variables:
   nlp_model:
     description: Name of the Databricks Foundation Model API endpoint used for NLP tasks via ai_query(). Must be an already-available shared endpoint (no deployment required).
     default: databricks-meta-llama-3-3-70b-instruct
+  gold_nlp_source_table:
+    description: >-
+      Name of the silver NLP table used as the source for the gold layer detail table.
+      Must be one of: silver_audio_nlp_ai_query (Foundation Model API — richer summaries)
+      or silver_audio_nlp_ai_func (AI SQL functions — shorter, faster).
+    default: silver_audio_nlp_ai_query
 
 
 # ============================================================
@@ -135,6 +141,13 @@ targets:
             schema: ${var.schema}
             nlp_model: ${var.nlp_model}
 
+        stt_gold_layer:
+          name: stt_gold_layer
+          configuration:
+            catalog: ${var.catalog}
+            schema: ${var.schema}
+            nlp_source_table: ${var.gold_nlp_source_table}
+
       jobs:
         stt_main:
           name: stt_main
@@ -143,7 +156,7 @@ targets:
               default: ${var.catalog}
             - name: schema
               default: ${var.schema}
-      
+
       schemas:
         dev:
           name: ${var.schema}
@@ -198,6 +211,13 @@ targets:
             catalog: ${var.catalog}
             schema: ${var.schema}
             nlp_model: ${var.nlp_model}
+
+        stt_gold_layer:
+          name: stt_gold_layer
+          configuration:
+            catalog: ${var.catalog}
+            schema: ${var.schema}
+            nlp_source_table: ${var.gold_nlp_source_table}
 
       jobs:
         stt_main:

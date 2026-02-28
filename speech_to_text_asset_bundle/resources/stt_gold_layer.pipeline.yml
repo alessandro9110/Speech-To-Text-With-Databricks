@@ -1,0 +1,29 @@
+# Gold layer pipeline for speech_to_text_asset_bundle.
+# Reads from the silver NLP enrichment tables and produces three gold tables:
+#
+#   gold_audio_sentiment_analysis  — full detail (join silver NLP + transcription metadata,
+#                                    flattened entities, derived text metrics)
+#   gold_audio_daily_stats         — daily aggregation by date / topic / sentiment
+#   gold_audio_sentiment_by_topic  — sentiment distribution cross-tab per business topic
+
+resources:
+  pipelines:
+    stt_gold_layer:
+      name: stt_gold_layer
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+
+      # Pipeline-level parameters accessible via spark.conf.get() in Python transformations
+      configuration:
+        catalog: ${var.catalog}
+        schema: ${var.schema}
+        # Name of the silver NLP table used as the source for the gold detail table.
+        # Driven by var.gold_nlp_source_table defined in databricks.yml.
+        # Options: silver_audio_nlp_ai_query (Foundation Model API — richer summaries)
+        #          silver_audio_nlp_ai_func  (AI SQL functions — shorter, faster)
+        nlp_source_table: ${var.gold_nlp_source_table}
+
+      libraries:
+        - glob:
+            include: ../src/stt_gold_layer/transformations/**
