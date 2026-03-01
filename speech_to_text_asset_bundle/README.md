@@ -47,6 +47,11 @@ The solution follows a medallion architecture to process audio files through mul
    - MLflow GenAI evaluation notebook compares both silver NLP implementations with deterministic validators and LLM judges
    - Results logged to `/Shared/nlp-quality-evaluation` experiment
 
+6. **AI/BI Dashboard** ✅
+   - Lakeview dashboard deployed via Asset Bundle on top of the gold layer tables
+   - Two pages: **Overview** (KPIs, sentiment × topic bar chart, daily volume, detail table) and **Global Filters** (date range, topic, sentiment)
+   - Dashboard file: `src/dashboards/stt_analytics.lvdash.json`
+
 ---
 
 ## Project Structure
@@ -59,6 +64,7 @@ speech_to_text_asset_bundle/
 │   ├── stt_audio_transcription.pipeline.yml        # Bronze + Silver transcription pipeline
 │   ├── stt_nlp_enrichment.pipeline.yml             # Silver NLP enrichment pipeline
 │   ├── stt_gold_layer.pipeline.yml                 # Gold aggregation pipeline
+│   ├── stt_dashboard.dashboard.yml                 # AI/BI dashboard resource
 │   └── stt_main.job.yml                            # Orchestration job
 └── src/
     ├── stt_audio_transcription/transformations/
@@ -70,6 +76,8 @@ speech_to_text_asset_bundle/
     ├── stt_gold_layer/transformations/
     │   ├── gold_audio_sentiment_analysis.py        # Gold detail table (flattened entities, metrics)
     │   └── gold_aggregates.py                      # gold_audio_daily_stats + gold_audio_sentiment_by_topic
+    ├── dashboards/
+    │   └── stt_analytics.lvdash.json               # AI/BI dashboard definition (Lakeview format)
     └── stt_nlp_evaluation/evaluation/
         └── nlp_quality_evaluation.ipynb            # MLflow GenAI evaluation notebook
 ```
@@ -81,6 +89,7 @@ Contains YAML definitions for all Databricks resources:
 - **`stt_audio_transcription.pipeline.yml`** — Serverless SDP pipeline: Bronze (Auto Loader) → Silver (Whisper transcription via `ai_query()`).
 - **`stt_nlp_enrichment.pipeline.yml`** — Serverless SDP pipeline: enriches `silver_audio_transcription` with sentiment, summary, entities, topic, and translation. Produces two implementations for quality comparison.
 - **`stt_gold_layer.pipeline.yml`** — Serverless SDP pipeline: builds analysis-ready gold tables from the NLP-enriched silver data. Flattens entity structs, adds derived metrics, and produces daily and topic/sentiment aggregations.
+- **`stt_dashboard.dashboard.yml`** — AI/BI (Lakeview) dashboard resource. Points to `src/dashboards/stt_analytics.lvdash.json` and resolves the catalog/schema at deploy time via `dataset_catalog` / `dataset_schema`, so the same JSON works in both dev and prod.
 - **`stt_main.job.yml`** — Orchestration job that chains all three pipelines in sequence, then runs the MLflow evaluation notebook in parallel with the gold layer update.
 
 ### `/src/stt_gold_layer/transformations/`
@@ -143,6 +152,7 @@ The bundle supports two deployment targets:
 | `stt_model`             | Whisper Model Serving endpoint used for audio transcription via `ai_query()`             | `stt-whisper-large-v3`                   |
 | `nlp_model`             | Foundation Model API endpoint used for NLP tasks via `ai_query()`                        | `databricks-meta-llama-3-3-70b-instruct` |
 | `gold_nlp_source_table` | Silver NLP table used as gold layer source (`silver_audio_nlp_ai_query` or `_ai_func`)   | `silver_audio_nlp_ai_query`              |
+| `warehouse_id`          | SQL warehouse for dashboard queries (resolved automatically from `Shared SQL Warehouse`) | (lookup)                                 |
 
 ### Deployment
 
@@ -360,5 +370,5 @@ Ensure the service principal has:
 2. ✅ **NLP Enrichment** — Sentiment, summary, entities, topic, and translation (two parallel implementations)
 3. ✅ **Gold Layer** — Analysis-ready detail and aggregate tables built from the enriched silver data
 4. ✅ **NLP Quality Evaluation** — MLflow GenAI evaluation comparing both NLP implementations
-5. 📋 **Dashboard** — Build an AI/BI dashboard on top of the gold layer tables
+5. ✅ **Dashboard** — AI/BI Lakeview dashboard deployed via Asset Bundle on top of the gold layer tables
 6. 📋 **Genie Space** — Natural language interface for querying `gold_audio_sentiment_analysis`
