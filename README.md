@@ -119,36 +119,6 @@ Both workflows use GitHub OIDC for secure, token-less authentication with Databr
 
 ![Databricks Audio Intelligence Pipeline](docs/images/DataflowDiagram.png)
 
-```text
-/Volumes/speech_to_text/audio/files/     ← audio files (wav, mp3, flac, …)
-        │
-        │  Auto Loader
-        ▼
-bronze_audio_files_raw                   ← raw file metadata (Bronze)
-        │
-        │  ai_query(Whisper Large V3)
-        ▼
-silver_audio_transcription               ← transcription text (Silver)
-        │
-        ├────────────────────────────────────────────┐
-        │  AI SQL functions                          │  Foundation Model API (ai_query)
-        ▼                                            ▼
-silver_audio_nlp_ai_func        silver_audio_nlp_ai_query   ← Gold source
-        │                                            │
-        ├──────────────────┬─────────────────────────┘
-                           │
-              ┌────────────┴──────────────────────────┐
-              ▼                                        ▼
- nlp_quality_evaluation.ipynb          gold_audio_sentiment_analysis  ┐
- (MLflow GenAI evaluation)             gold_audio_daily_stats         ├ (Gold)
-                                       gold_audio_sentiment_by_topic  ┘
-                                                       │
-                                        ┌──────────────┴──────────────┐
-                                        ▼                             ▼
-                                 AI/BI Dashboard               Genie Space
-                             (Speech to Text Analytics)   (natural language queries)
-```
-
 All four stages are orchestrated by the `stt_main` job: transcription → NLP enrichment → gold layer update and MLflow evaluation in parallel.
 
 ### Technologies
