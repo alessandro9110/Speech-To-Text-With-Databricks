@@ -1,6 +1,6 @@
 # Main orchestration job for speech_to_text_asset_bundle.
 #
-# Runs the full end-to-end pipeline in three sequential steps:
+# Runs the full end-to-end pipeline in four steps (steps 3a and 3b run in parallel):
 #
 #   1. run_audio_transcription_pipeline  — picks up new audio files from the Volume,
 #                                          transcribes them with Whisper (ai_query),
@@ -10,10 +10,15 @@
 #                                            • silver_audio_nlp_ai_func  (AI SQL functions)
 #                                            • silver_audio_nlp_ai_query (Foundation Model)
 #
-#   3. evaluate_nlp_quality              — runs the MLflow GenAI evaluation notebook and logs
+#   3a. run_gold_layer_pipeline          — builds the gold layer from the enriched silver tables:
+#                                            • gold_audio_sentiment_analysis (detail)
+#                                            • gold_audio_daily_stats        (daily aggregation)
+#                                            • gold_audio_sentiment_by_topic (cross-tab)
+#
+#   3b. evaluate_nlp_quality             — runs the MLflow GenAI evaluation notebook and logs
 #                                          results to /Shared/nlp-quality-evaluation.
 #
-# Both pipeline steps run a triggered update: they process all pending data since the
+# All pipeline steps run a triggered update: they process all pending data since the
 # last checkpoint, then stop. No always-on compute is required.
 
 resources:
@@ -57,8 +62,20 @@ resources:
           pipeline_task:
             pipeline_id: ${resources.pipelines.stt_nlp_enrichment.id}
 
-        # ── Step 3: evaluate NLP quality via MLflow ───────────────────────────
-        # Runs only after the NLP enrichment update succeeds.
+        # ── Step 3a: build gold layer ─────────────────────────────────────────
+        # Runs in parallel with evaluate_nlp_quality, after NLP enrichment succeeds.
+        # Reads silver_audio_nlp_ai_func and silver_audio_transcription to produce:
+        #   • gold_audio_sentiment_analysis  — full detail with flattened entities
+        #   • gold_audio_daily_stats         — daily aggregation by topic / sentiment
+        #   • gold_audio_sentiment_by_topic  — sentiment cross-tab per business domain
+        - task_key: run_gold_layer_pipeline
+          depends_on:
+            - task_key: run_nlp_enrichment_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.stt_gold_layer.id}
+
+        # ── Step 3b: evaluate NLP quality via MLflow ──────────────────────────
+        # Runs in parallel with run_gold_layer_pipeline, after NLP enrichment succeeds.
         # Reads silver_audio_nlp_ai_func and silver_audio_nlp_ai_query,
         # scores both with deterministic validators and LLM judges,
         # and logs results to the MLflow experiment.
