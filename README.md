@@ -38,7 +38,9 @@ This repository implements an end-to-end speech-to-text (STT) pipeline on Databr
 
 ### Prerequisites
 
-- Databricks workspace with Unity Catalog enabled
+- **Databricks workspace(s) with Unity Catalog enabled**
+  - **Two workspaces** (recommended for full CI/CD): one for `dev`, one for `prod` — each target in `databricks.yml` points to a separate workspace, ensuring complete environment isolation
+  - **One workspace** (simplified setup): both `dev` and `prod` targets deploy to the same workspace, differentiated only by schema name — suitable for personal projects or demos
 - GitHub repository with administrative access
 - Databricks CLI installed (optional, for local deployment)
 
@@ -98,6 +100,7 @@ The core Databricks solution. Contains:
 - **`tests/`** — Unit tests for transformations
 
 **For detailed documentation**, see [speech_to_text_asset_bundle/README.md](speech_to_text_asset_bundle/README.md)
+**For detailed documentation**, see [speech_to_text_asset_bundle/README.md](speech_to_text_asset_bundle/README.md)
 
 ### `/.github/workflows`
 
@@ -115,28 +118,36 @@ Both workflows use GitHub OIDC for secure, token-less authentication with Databr
 ### Data Flow
 
 ```text
-/Volumes/speech_to_text/audio/files/     ← audio files uploaded here
+/Volumes/speech_to_text/audio/files/     ← audio files (wav, mp3, flac, …)
         │
-        │  Auto Loader (bronze_audio_files_raw)
+        │  Auto Loader
         ▼
-bronze_audio_files_raw                   ← raw binary + metadata
+bronze_audio_files_raw                   ← raw file metadata (Bronze)
         │
-        │  ai_query(Whisper endpoint)
+        │  ai_query(Whisper Large V3)
         ▼
-silver_audio_transcription               ← transcription text
+silver_audio_transcription               ← transcription text (Silver)
         │
         ├────────────────────────────────────────────┐
-        │  AI SQL functions                          │  Foundation Model (ai_query)
+        │  AI SQL functions                          │  Foundation Model API (ai_query)
         ▼                                            ▼
-silver_audio_nlp_ai_func            silver_audio_nlp_ai_query
+silver_audio_nlp_ai_func        silver_audio_nlp_ai_query   ← Gold source
         │                                            │
-        └──────────────────┬─────────────────────────┘
-                           ▼
-              nlp_quality_evaluation.ipynb
-              (MLflow GenAI evaluation)
+        ├──────────────────┬─────────────────────────┘
+                           │
+              ┌────────────┴──────────────────────────┐
+              ▼                                        ▼
+ nlp_quality_evaluation.ipynb          gold_audio_sentiment_analysis  ┐
+ (MLflow GenAI evaluation)             gold_audio_daily_stats         ├ (Gold)
+                                       gold_audio_sentiment_by_topic  ┘
+                                                       │
+                                        ┌──────────────┴──────────────┐
+                                        ▼                             ▼
+                                 AI/BI Dashboard               Genie Space
+                             (Speech to Text Analytics)   (natural language queries)
 ```
 
-All three stages are orchestrated by the `stt_main` job, which runs them in sequence on a triggered (on-demand or scheduled) basis.
+All four stages are orchestrated by the `stt_main` job: transcription → NLP enrichment → gold layer update and MLflow evaluation in parallel.
 
 ### Technologies
 
@@ -177,7 +188,7 @@ databricks bundle deploy --target dev --var="service_principal_id=<uuid>"
 # Deploy to prod
 databricks bundle deploy --target prod --var="service_principal_id=<uuid>"
 
-# Run the full pipeline (transcription → NLP enrichment → evaluation)
+# Run the full pipeline (transcription → NLP enrichment → gold layer + evaluation)
 databricks bundle run stt_main
 ```
 
@@ -189,7 +200,7 @@ databricks bundle run stt_main
 - **[GitHub Actions Setup](docs/GITHUB_ACTIONS_SETUP.md)** — GitHub environments, variables, and secrets
 - **[Solution Architecture](docs/SOLUTION_ARCHITECTURE.md)** — Technical deep-dive into pipeline design and data flow
 - **[Environment Setup Overview](docs/ENVIRONMENT_SETUP.md)** — Quick setup checklist and documentation index
-- **[Source Code & Architecture](speech_to_text_asset_bundle/src/STT_README.md)** — Pipeline architecture, data schemas, and configuration reference
+- **[Bundle README](speech_to_text_asset_bundle/README.md)** — Pipeline architecture, data schemas, and configuration reference
 - **[Copilot Agents](docs/copilot-agents.md)** — Custom AI agents available in this repository
 
 ### External References
