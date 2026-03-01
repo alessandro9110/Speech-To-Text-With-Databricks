@@ -29,10 +29,10 @@ This repository implements an end-to-end speech-to-text (STT) pipeline on Databr
 - ✅ **MLflow Evaluation** — Side-by-side quality comparison of AI SQL functions vs Foundation Model API
 - ✅ **Automated CI/CD** — GitHub Actions deploy to Dev and Prod environments
 - ✅ **Infrastructure as Code** — Databricks Asset Bundle with dev/prod targets
+- ✅ **Dashboard** — Databricks AI/BI dashboard for monitoring transcription and NLP results
 
 ### TODO
 
-- [x] **Dashboard** — Databricks AI/BI dashboard for monitoring transcription and NLP results
 - [ ] **Genie Space** — Natural language interface for querying transcription and enrichment data
 
 ---
@@ -41,7 +41,9 @@ This repository implements an end-to-end speech-to-text (STT) pipeline on Databr
 
 ### Prerequisites
 
-- Databricks workspace with Unity Catalog enabled
+- **Databricks workspace(s) with Unity Catalog enabled**
+  - **Two workspaces** (recommended for full CI/CD): one for `dev`, one for `prod` — each target in `databricks.yml` points to a separate workspace, ensuring complete environment isolation
+  - **One workspace** (simplified setup): both `dev` and `prod` targets deploy to the same workspace, differentiated only by schema name — suitable for personal projects or demos
 - GitHub repository with administrative access
 - Databricks CLI installed (optional, for local deployment)
 
@@ -63,13 +65,17 @@ This repository implements an end-to-end speech-to-text (STT) pipeline on Databr
 Speech-To-Text-With-Databricks/
 ├── speech_to_text_asset_bundle/          # Databricks Asset Bundle (DAB)
 │   ├── databricks.yml                    # Bundle config: variables, targets (dev/prod)
-│   ├── resources/                        # Jobs, pipelines, schemas, volumes
-│   │   ├── stt_audio_transcription.pipeline.yml
-│   │   ├── stt_nlp_enrichment.pipeline.yml
-│   │   └── stt_main.job.yml
-│   ├── src/                              # Python source code
+│   ├── resources/                        # Jobs, pipelines, schemas, volumes, dashboard
+│   │   ├── stt_audio_transcription.pipeline.yml  # Bronze + Silver transcription pipeline
+│   │   ├── stt_nlp_enrichment.pipeline.yml       # Silver NLP enrichment pipeline
+│   │   ├── stt_gold_layer.pipeline.yml           # Gold aggregation pipeline
+│   │   ├── stt_dashboard.dashboard.yml           # AI/BI dashboard resource
+│   │   └── stt_main.job.yml                      # Orchestration job
+│   ├── src/                              # Python source code and assets
 │   │   ├── stt_audio_transcription/      # Bronze + Silver transcription tables
 │   │   ├── stt_nlp_enrichment/           # Silver NLP enrichment tables
+│   │   ├── stt_gold_layer/               # Gold detail and aggregate tables
+│   │   ├── dashboards/                   # AI/BI dashboard definition (Lakeview JSON)
 │   │   └── stt_nlp_evaluation/           # MLflow quality evaluation notebook
 │   ├── tests/                            # Unit and integration tests
 │   └── pyproject.toml                    # Python dependencies and tooling
@@ -84,14 +90,16 @@ Speech-To-Text-With-Databricks/
 
 The core Databricks solution. Contains:
 
-- **`databricks.yml`** — Bundle configuration with `dev` and `prod` targets, bundle variables (catalog, schema, stt_model, nlp_model)
-- **`resources/`** — YAML definitions for the two pipelines (`stt_audio_transcription`, `stt_nlp_enrichment`), the orchestration job (`stt_main`), schemas, and volumes
-- **`src/stt_audio_transcription/transformations/`** — Bronze (Auto Loader) and Silver (Whisper transcription) pipeline tables
-- **`src/stt_nlp_enrichment/transformations/`** — Two parallel Silver NLP implementations: AI SQL functions and Foundation Model API
-- **`src/stt_nlp_evaluation/evaluation/`** — MLflow GenAI evaluation notebook comparing both NLP implementations
+- **`databricks.yml`** — Bundle configuration with `dev` and `prod` targets and all bundle variables
+- **`resources/`** — YAML definitions for all pipelines, the AI/BI dashboard, the orchestration job, schemas, and volumes
+- **`src/stt_audio_transcription/`** — Bronze and Silver transcription pipeline tables
+- **`src/stt_nlp_enrichment/`** — Silver NLP enrichment tables (two parallel implementations)
+- **`src/stt_gold_layer/`** — Gold detail and aggregate tables
+- **`src/dashboards/`** — AI/BI Lakeview dashboard definition
+- **`src/stt_nlp_evaluation/`** — MLflow GenAI evaluation notebook
 - **`tests/`** — Unit tests for transformations
 
-**For detailed documentation**, see [speech_to_text_asset_bundle/src/STT_README.md](speech_to_text_asset_bundle/src/STT_README.md)
+**For detailed documentation**, see [speech_to_text_asset_bundle/README.md](speech_to_text_asset_bundle/README.md)
 
 ### `/.github/workflows`
 
@@ -109,28 +117,36 @@ Both workflows use GitHub OIDC for secure, token-less authentication with Databr
 ### Data Flow
 
 ```text
-/Volumes/speech_to_text/audio/files/     ← audio files uploaded here
+/Volumes/speech_to_text/audio/files/     ← audio files (wav, mp3, flac, …)
         │
-        │  Auto Loader (bronze_audio_files_raw)
+        │  Auto Loader
         ▼
-bronze_audio_files_raw                   ← raw binary + metadata
+bronze_audio_files_raw                   ← raw file metadata (Bronze)
         │
-        │  ai_query(Whisper endpoint)
+        │  ai_query(Whisper Large V3)
         ▼
-silver_audio_transcription               ← transcription text
+silver_audio_transcription               ← transcription text (Silver)
         │
         ├────────────────────────────────────────────┐
-        │  AI SQL functions                          │  Foundation Model (ai_query)
+        │  AI SQL functions                          │  Foundation Model API (ai_query)
         ▼                                            ▼
-silver_audio_nlp_ai_func            silver_audio_nlp_ai_query
+silver_audio_nlp_ai_func        silver_audio_nlp_ai_query   ← Gold source
         │                                            │
-        └──────────────────┬─────────────────────────┘
-                           ▼
-              nlp_quality_evaluation.ipynb
-              (MLflow GenAI evaluation)
+        ├──────────────────┬─────────────────────────┘
+                           │
+              ┌────────────┴──────────────────────────┐
+              ▼                                        ▼
+ nlp_quality_evaluation.ipynb          gold_audio_sentiment_analysis  ┐
+ (MLflow GenAI evaluation)             gold_audio_daily_stats         ├ (Gold)
+                                       gold_audio_sentiment_by_topic  ┘
+                                                       │
+                                        ┌──────────────┴──────────────┐
+                                        ▼                             ▼
+                                 AI/BI Dashboard               Genie Space
+                             (Speech to Text Analytics)   (natural language queries)
 ```
 
-All three stages are orchestrated by the `stt_main` job, which runs them in sequence on a triggered (on-demand or scheduled) basis.
+All four stages are orchestrated by the `stt_main` job: transcription → NLP enrichment → gold layer update and MLflow evaluation in parallel.
 
 ### Technologies
 
@@ -171,7 +187,7 @@ databricks bundle deploy --target dev --var="service_principal_id=<uuid>"
 # Deploy to prod
 databricks bundle deploy --target prod --var="service_principal_id=<uuid>"
 
-# Run the full pipeline (transcription → NLP enrichment → evaluation)
+# Run the full pipeline (transcription → NLP enrichment → gold layer + evaluation)
 databricks bundle run stt_main
 ```
 
@@ -183,7 +199,7 @@ databricks bundle run stt_main
 - **[GitHub Actions Setup](docs/GITHUB_ACTIONS_SETUP.md)** — GitHub environments, variables, and secrets
 - **[Solution Architecture](docs/SOLUTION_ARCHITECTURE.md)** — Technical deep-dive into pipeline design and data flow
 - **[Environment Setup Overview](docs/ENVIRONMENT_SETUP.md)** — Quick setup checklist and documentation index
-- **[Source Code & Architecture](speech_to_text_asset_bundle/src/STT_README.md)** — Pipeline architecture, data schemas, and configuration reference
+- **[Bundle README](speech_to_text_asset_bundle/README.md)** — Pipeline architecture, data schemas, and configuration reference
 - **[Copilot Agents](docs/copilot-agents.md)** — Custom AI agents available in this repository
 
 ### External References
