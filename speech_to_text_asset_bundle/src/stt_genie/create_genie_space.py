@@ -40,6 +40,7 @@ print(f"Tables:       {table_identifiers}")
 # COMMAND ----------
 
 import json
+import uuid
 from databricks.sdk import WorkspaceClient
 
 w = WorkspaceClient()
@@ -90,12 +91,12 @@ serialized_space = json.dumps({
     "version": 2,
     "config": {
         "sample_questions": [
-            {"question": [q]} for q in sample_questions
+            {"id": uuid.uuid4().hex, "question": [q]} for q in sample_questions
         ],
     },
     "data_sources": {
         "tables": [
-            {"identifier": t} for t in table_identifiers
+            {"identifier": t} for t in sorted(table_identifiers)
         ],
     },
 })
