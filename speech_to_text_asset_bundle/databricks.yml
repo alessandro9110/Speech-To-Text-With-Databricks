@@ -34,7 +34,7 @@ variables:
   warehouse_id:
     description: SQL warehouse used to run dashboard queries.
     lookup:
-      warehouse: Shared SQL Warehouse
+      warehouse: Serverless Starter Warehouse
 
 
 # ============================================================
