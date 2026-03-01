@@ -32,9 +32,12 @@ variables:
       or silver_audio_nlp_ai_func (AI SQL functions — shorter, faster).
     default: silver_audio_nlp_ai_query
   warehouse_id:
-    description: SQL warehouse used to run dashboard queries.
+    description: SQL warehouse used to run dashboard queries and the Genie Space.
     lookup:
       warehouse: Serverless Starter Warehouse
+  genie_space_name:
+    description: Display name of the Genie Space for natural language exploration of the gold-layer tables.
+    default: Speech to Text Analytics
 
 
 # ============================================================
