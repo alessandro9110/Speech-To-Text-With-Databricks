@@ -1,5 +1,11 @@
 # Speech To Text With Databricks
 
+[![Databricks](https://img.shields.io/badge/Databricks-FF3621?style=for-the-badge&logo=databricks&logoColor=white)](https://databricks.com)
+[![Whisper Large V3](https://img.shields.io/badge/Whisper_Large_V3-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/research/whisper)
+[![LLaMA 3.3 70B](https://img.shields.io/badge/LLaMA_3.3_70B-0467DF?style=for-the-badge&logo=meta&logoColor=white)](https://ai.meta.com/blog/llama-3-3/)
+[![MLflow](https://img.shields.io/badge/MLflow-0194E2?style=for-the-badge&logo=mlflow&logoColor=white)](https://mlflow.org)
+[![Apache Spark](https://img.shields.io/badge/Apache_Spark-E25A1C?style=for-the-badge&logo=apachespark&logoColor=white)](https://spark.apache.org)
+
 A speech-to-text processing solution using **Databricks Asset Bundles** for infrastructure-as-code and **GitHub Actions** for automated CI/CD deployment.
 
 ---
@@ -26,7 +32,7 @@ This repository implements an end-to-end speech-to-text (STT) pipeline on Databr
 
 ### TODO
 
-- [ ] **Dashboard** — Databricks AI/BI dashboard for monitoring transcription and NLP results
+- [x] **Dashboard** — Databricks AI/BI dashboard for monitoring transcription and NLP results
 - [ ] **Genie Space** — Natural language interface for querying transcription and enrichment data
 
 ---
