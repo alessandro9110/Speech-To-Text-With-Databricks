@@ -90,13 +90,13 @@ Speech-To-Text-With-Databricks/
 
 The core Databricks solution. Contains:
 
-- **`databricks.yml`** — Bundle configuration with `dev` and `prod` targets, bundle variables (catalog, schema, stt_model, nlp_model, gold_nlp_source_table, warehouse_id)
-- **`resources/`** — YAML definitions for all three pipelines (`stt_audio_transcription`, `stt_nlp_enrichment`, `stt_gold_layer`), the AI/BI dashboard (`stt_analytics`), the orchestration job (`stt_main`), schemas, and volumes
-- **`src/stt_audio_transcription/transformations/`** — Bronze (Auto Loader) and Silver (Whisper transcription) pipeline tables
-- **`src/stt_nlp_enrichment/transformations/`** — Two parallel Silver NLP implementations: AI SQL functions and Foundation Model API
-- **`src/stt_gold_layer/transformations/`** — Gold detail table (`gold_audio_sentiment_analysis`) and aggregate tables (`gold_audio_daily_stats`, `gold_audio_sentiment_by_topic`)
-- **`src/dashboards/`** — Lakeview dashboard definition (`stt_analytics.lvdash.json`) deployed as an AI/BI dashboard
-- **`src/stt_nlp_evaluation/evaluation/`** — MLflow GenAI evaluation notebook comparing both NLP implementations
+- **`databricks.yml`** — Bundle configuration with `dev` and `prod` targets and all bundle variables
+- **`resources/`** — YAML definitions for all pipelines, the AI/BI dashboard, the orchestration job, schemas, and volumes
+- **`src/stt_audio_transcription/`** — Bronze and Silver transcription pipeline tables
+- **`src/stt_nlp_enrichment/`** — Silver NLP enrichment tables (two parallel implementations)
+- **`src/stt_gold_layer/`** — Gold detail and aggregate tables
+- **`src/dashboards/`** — AI/BI Lakeview dashboard definition
+- **`src/stt_nlp_evaluation/`** — MLflow GenAI evaluation notebook
 - **`tests/`** — Unit tests for transformations
 
 **For detailed documentation**, see [speech_to_text_asset_bundle/README.md](speech_to_text_asset_bundle/README.md)
@@ -117,28 +117,35 @@ Both workflows use GitHub OIDC for secure, token-less authentication with Databr
 ### Data Flow
 
 ```text
-/Volumes/speech_to_text/audio/files/     ← audio files uploaded here
+/Volumes/speech_to_text/audio/files/     ← audio files (wav, mp3, flac, …)
         │
-        │  Auto Loader (bronze_audio_files_raw)
+        │  Auto Loader
         ▼
-bronze_audio_files_raw                   ← raw binary + metadata
+bronze_audio_files_raw                   ← raw file metadata (Bronze)
         │
-        │  ai_query(Whisper endpoint)
+        │  ai_query(Whisper Large V3)
         ▼
-silver_audio_transcription               ← transcription text
+silver_audio_transcription               ← transcription text (Silver)
         │
         ├────────────────────────────────────────────┐
-        │  AI SQL functions                          │  Foundation Model (ai_query)
+        │  AI SQL functions                          │  Foundation Model API (ai_query)
         ▼                                            ▼
-silver_audio_nlp_ai_func            silver_audio_nlp_ai_query
+silver_audio_nlp_ai_func        silver_audio_nlp_ai_query   ← Gold source
         │                                            │
-        └──────────────────┬─────────────────────────┘
-                           ▼
-              nlp_quality_evaluation.ipynb
-              (MLflow GenAI evaluation)
+        ├──────────────────┬─────────────────────────┘
+                           │
+              ┌────────────┴──────────────────────────┐
+              ▼                                        ▼
+ nlp_quality_evaluation.ipynb          gold_audio_sentiment_analysis  ┐
+ (MLflow GenAI evaluation)             gold_audio_daily_stats         ├ (Gold)
+                                       gold_audio_sentiment_by_topic  ┘
+                                                       │
+                                                       ▼
+                                            AI/BI Dashboard
+                                         (Speech to Text Analytics)
 ```
 
-All three stages are orchestrated by the `stt_main` job, which runs them in sequence on a triggered (on-demand or scheduled) basis.
+All four stages are orchestrated by the `stt_main` job: transcription → NLP enrichment → gold layer update and MLflow evaluation in parallel.
 
 ### Technologies
 
@@ -179,7 +186,7 @@ databricks bundle deploy --target dev --var="service_principal_id=<uuid>"
 # Deploy to prod
 databricks bundle deploy --target prod --var="service_principal_id=<uuid>"
 
-# Run the full pipeline (transcription → NLP enrichment → evaluation)
+# Run the full pipeline (transcription → NLP enrichment → gold layer + evaluation)
 databricks bundle run stt_main
 ```
 
@@ -191,7 +198,7 @@ databricks bundle run stt_main
 - **[GitHub Actions Setup](docs/GITHUB_ACTIONS_SETUP.md)** — GitHub environments, variables, and secrets
 - **[Solution Architecture](docs/SOLUTION_ARCHITECTURE.md)** — Technical deep-dive into pipeline design and data flow
 - **[Environment Setup Overview](docs/ENVIRONMENT_SETUP.md)** — Quick setup checklist and documentation index
-- **[Source Code & Architecture](speech_to_text_asset_bundle/src/STT_README.md)** — Pipeline architecture, data schemas, and configuration reference
+- **[Bundle README](speech_to_text_asset_bundle/README.md)** — Pipeline architecture, data schemas, and configuration reference
 - **[Copilot Agents](docs/copilot-agents.md)** — Custom AI agents available in this repository
 
 ### External References
