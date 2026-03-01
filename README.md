@@ -117,6 +117,8 @@ Both workflows use GitHub OIDC for secure, token-less authentication with Databr
 
 ### Data Flow
 
+![Databricks Audio Intelligence Pipeline](docs/images/DataflowDiagram.png)
+
 ```text
 /Volumes/speech_to_text/audio/files/     ← audio files (wav, mp3, flac, …)
         │
