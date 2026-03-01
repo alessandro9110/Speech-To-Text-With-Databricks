@@ -1,0 +1,48 @@
+# One-time setup job that creates or updates the Speech-to-Text Genie Space.
+#
+# Genie Space is not yet a native Databricks Asset Bundle resource type, so
+# this job acts as the deployment mechanism: it runs the create_genie_space
+# notebook which calls the Databricks REST API via the Python SDK to provision
+# the space against the gold-layer tables produced by stt_gold_layer.
+#
+# Run this job:
+#   - After the first bundle deployment (to create the space)
+#   - Whenever you update the description, sample questions, or table list
+#
+# The notebook is idempotent: if a space with the same display_name already
+# exists it is updated; otherwise a new space is created.
+
+resources:
+  jobs:
+    stt_genie_setup:
+      name: stt_genie_setup
+      description: >-
+        Creates or updates the Speech-to-Text Genie Space for natural language
+        exploration of the gold-layer NLP analysis tables. Idempotent: safe to
+        re-run after changes to sample questions or table definitions.
+
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+        - name: warehouse_id
+          default: ${var.warehouse_id}
+        - name: display_name
+          default: ${var.genie_space_name}
+
+      tasks:
+        - task_key: create_genie_space
+          notebook_task:
+            notebook_path: ../src/stt_genie/create_genie_space.py
+            base_parameters:
+              catalog:      "{{job.parameters.catalog}}"
+              schema:       "{{job.parameters.schema}}"
+              warehouse_id: "{{job.parameters.warehouse_id}}"
+              display_name: "{{job.parameters.display_name}}"
+          environment_key: serverless_env
+
+      environments:
+        - environment_key: serverless_env
+          spec:
+            client: "1"

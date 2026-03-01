@@ -30,10 +30,7 @@ This repository implements an end-to-end speech-to-text (STT) pipeline on Databr
 - ✅ **Automated CI/CD** — GitHub Actions deploy to Dev and Prod environments
 - ✅ **Infrastructure as Code** — Databricks Asset Bundle with dev/prod targets
 - ✅ **Dashboard** — Databricks AI/BI dashboard for monitoring transcription and NLP results
-
-### TODO
-
-- [ ] **Genie Space** — Natural language interface for querying transcription and enrichment data
+- ✅ **Genie Space** — Natural language interface for querying the gold layer tables
 
 ---
 
@@ -70,12 +67,14 @@ Speech-To-Text-With-Databricks/
 │   │   ├── stt_nlp_enrichment.pipeline.yml       # Silver NLP enrichment pipeline
 │   │   ├── stt_gold_layer.pipeline.yml           # Gold aggregation pipeline
 │   │   ├── stt_dashboard.dashboard.yml           # AI/BI dashboard resource
+│   │   ├── stt_genie.job.yml                     # Genie Space setup job
 │   │   └── stt_main.job.yml                      # Orchestration job
 │   ├── src/                              # Python source code and assets
 │   │   ├── stt_audio_transcription/      # Bronze + Silver transcription tables
 │   │   ├── stt_nlp_enrichment/           # Silver NLP enrichment tables
 │   │   ├── stt_gold_layer/               # Gold detail and aggregate tables
 │   │   ├── dashboards/                   # AI/BI dashboard definition (Lakeview JSON)
+│   │   ├── stt_genie/                    # Genie Space setup notebook
 │   │   └── stt_nlp_evaluation/           # MLflow quality evaluation notebook
 │   ├── tests/                            # Unit and integration tests
 │   └── pyproject.toml                    # Python dependencies and tooling
@@ -91,14 +90,16 @@ Speech-To-Text-With-Databricks/
 The core Databricks solution. Contains:
 
 - **`databricks.yml`** — Bundle configuration with `dev` and `prod` targets and all bundle variables
-- **`resources/`** — YAML definitions for all pipelines, the AI/BI dashboard, the orchestration job, schemas, and volumes
+- **`resources/`** — YAML definitions for all pipelines, the AI/BI dashboard, the Genie Space setup job, the orchestration job, schemas, and volumes
 - **`src/stt_audio_transcription/`** — Bronze and Silver transcription pipeline tables
 - **`src/stt_nlp_enrichment/`** — Silver NLP enrichment tables (two parallel implementations)
 - **`src/stt_gold_layer/`** — Gold detail and aggregate tables
 - **`src/dashboards/`** — AI/BI Lakeview dashboard definition
+- **`src/stt_genie/`** — Notebook that creates/updates the Genie Space via the Databricks SDK
 - **`src/stt_nlp_evaluation/`** — MLflow GenAI evaluation notebook
 - **`tests/`** — Unit tests for transformations
 
+**For detailed documentation**, see [speech_to_text_asset_bundle/README.md](speech_to_text_asset_bundle/README.md)
 **For detailed documentation**, see [speech_to_text_asset_bundle/README.md](speech_to_text_asset_bundle/README.md)
 
 ### `/.github/workflows`
