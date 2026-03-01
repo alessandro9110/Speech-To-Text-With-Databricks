@@ -205,3 +205,6 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Databricks AI Dev Kit — auto-generated resource tracking file (workspace-specific)
+.databricks-resources.json

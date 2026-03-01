@@ -5,6 +5,9 @@
 #
 # Run it once after the initial deployment, and re-run it whenever you want to
 # update the description, sample questions, or table list.
+#
+# The Genie REST API uses the field 'title' (not 'display_name') and requires
+# a 'serialized_space' JSON string containing sample_questions and data_sources.
 
 # COMMAND ----------
 
@@ -36,6 +39,8 @@ print(f"Tables:       {table_identifiers}")
 
 # COMMAND ----------
 
+import json
+import uuid
 from databricks.sdk import WorkspaceClient
 
 w = WorkspaceClient()
@@ -80,23 +85,39 @@ sample_questions = [
     "Compare the number of positive vs negative transcriptions per topic",
 ]
 
+# The Genie REST API requires 'serialized_space': a JSON string containing
+# sample questions and data source table identifiers.
+serialized_space = json.dumps({
+    "version": 2,
+    "config": {
+        "sample_questions": [
+            {"id": uuid.uuid4().hex, "question": [q]} for q in sample_questions
+        ],
+    },
+    "data_sources": {
+        "tables": [
+            {"identifier": t} for t in sorted(table_identifiers)
+        ],
+    },
+})
+
+# The REST API uses 'title' (not 'display_name') for the space name.
 space_body = {
-    "display_name":      display_name,
-    "description":       description,
-    "warehouse_id":      warehouse_id,
-    "table_identifiers": table_identifiers,
-    "sample_questions":  [{"question": q} for q in sample_questions],
+    "title":            display_name,
+    "description":      description,
+    "warehouse_id":     warehouse_id,
+    "serialized_space": serialized_space,
 }
 
 # COMMAND ----------
-# Check whether a space with this display_name already exists.
+# Check whether a space with this title already exists.
 
 existing_space_id = None
 try:
     response  = w.api_client.do("GET", "/api/2.0/genie/spaces")
     all_spaces = response.get("spaces", [])
     match = next(
-        (s for s in all_spaces if s.get("display_name") == display_name),
+        (s for s in all_spaces if s.get("title") == display_name),
         None,
     )
     if match:
