@@ -65,13 +65,17 @@ This repository implements an end-to-end speech-to-text (STT) pipeline on Databr
 Speech-To-Text-With-Databricks/
 ├── speech_to_text_asset_bundle/          # Databricks Asset Bundle (DAB)
 │   ├── databricks.yml                    # Bundle config: variables, targets (dev/prod)
-│   ├── resources/                        # Jobs, pipelines, schemas, volumes
-│   │   ├── stt_audio_transcription.pipeline.yml
-│   │   ├── stt_nlp_enrichment.pipeline.yml
-│   │   └── stt_main.job.yml
-│   ├── src/                              # Python source code
+│   ├── resources/                        # Jobs, pipelines, schemas, volumes, dashboard
+│   │   ├── stt_audio_transcription.pipeline.yml  # Bronze + Silver transcription pipeline
+│   │   ├── stt_nlp_enrichment.pipeline.yml       # Silver NLP enrichment pipeline
+│   │   ├── stt_gold_layer.pipeline.yml           # Gold aggregation pipeline
+│   │   ├── stt_dashboard.dashboard.yml           # AI/BI dashboard resource
+│   │   └── stt_main.job.yml                      # Orchestration job
+│   ├── src/                              # Python source code and assets
 │   │   ├── stt_audio_transcription/      # Bronze + Silver transcription tables
 │   │   ├── stt_nlp_enrichment/           # Silver NLP enrichment tables
+│   │   ├── stt_gold_layer/               # Gold detail and aggregate tables
+│   │   ├── dashboards/                   # AI/BI dashboard definition (Lakeview JSON)
 │   │   └── stt_nlp_evaluation/           # MLflow quality evaluation notebook
 │   ├── tests/                            # Unit and integration tests
 │   └── pyproject.toml                    # Python dependencies and tooling
@@ -86,14 +90,16 @@ Speech-To-Text-With-Databricks/
 
 The core Databricks solution. Contains:
 
-- **`databricks.yml`** — Bundle configuration with `dev` and `prod` targets, bundle variables (catalog, schema, stt_model, nlp_model)
-- **`resources/`** — YAML definitions for the two pipelines (`stt_audio_transcription`, `stt_nlp_enrichment`), the orchestration job (`stt_main`), schemas, and volumes
+- **`databricks.yml`** — Bundle configuration with `dev` and `prod` targets, bundle variables (catalog, schema, stt_model, nlp_model, gold_nlp_source_table, warehouse_id)
+- **`resources/`** — YAML definitions for all three pipelines (`stt_audio_transcription`, `stt_nlp_enrichment`, `stt_gold_layer`), the AI/BI dashboard (`stt_analytics`), the orchestration job (`stt_main`), schemas, and volumes
 - **`src/stt_audio_transcription/transformations/`** — Bronze (Auto Loader) and Silver (Whisper transcription) pipeline tables
 - **`src/stt_nlp_enrichment/transformations/`** — Two parallel Silver NLP implementations: AI SQL functions and Foundation Model API
+- **`src/stt_gold_layer/transformations/`** — Gold detail table (`gold_audio_sentiment_analysis`) and aggregate tables (`gold_audio_daily_stats`, `gold_audio_sentiment_by_topic`)
+- **`src/dashboards/`** — Lakeview dashboard definition (`stt_analytics.lvdash.json`) deployed as an AI/BI dashboard
 - **`src/stt_nlp_evaluation/evaluation/`** — MLflow GenAI evaluation notebook comparing both NLP implementations
 - **`tests/`** — Unit tests for transformations
 
-**For detailed documentation**, see [speech_to_text_asset_bundle/src/STT_README.md](speech_to_text_asset_bundle/src/STT_README.md)
+**For detailed documentation**, see [speech_to_text_asset_bundle/README.md](speech_to_text_asset_bundle/README.md)
 
 ### `/.github/workflows`
 
