@@ -140,9 +140,10 @@ silver_audio_nlp_ai_func        silver_audio_nlp_ai_query   ← Gold source
  (MLflow GenAI evaluation)             gold_audio_daily_stats         ├ (Gold)
                                        gold_audio_sentiment_by_topic  ┘
                                                        │
-                                                       ▼
-                                            AI/BI Dashboard
-                                         (Speech to Text Analytics)
+                                        ┌──────────────┴──────────────┐
+                                        ▼                             ▼
+                                 AI/BI Dashboard               Genie Space
+                             (Speech to Text Analytics)   (natural language queries)
 ```
 
 All four stages are orchestrated by the `stt_main` job: transcription → NLP enrichment → gold layer update and MLflow evaluation in parallel.
