@@ -1,0 +1,21 @@
+# AI/BI dashboard for the Speech-to-Text gold layer.
+# Visualises transcription metrics, sentiment distribution, and topic analysis
+# sourced from the three gold tables produced by the stt_gold_layer pipeline.
+#
+# Datasets reference unqualified table names (e.g. gold_audio_sentiment_analysis).
+# The bundle resolves them against dataset_catalog / dataset_schema at deploy time,
+# so the same dashboard file works across dev (schema=audio) and prod (schema=prod).
+
+resources:
+  dashboards:
+    stt_analytics:
+      display_name: "Speech to Text Analytics"
+      file_path: ../src/dashboards/stt_analytics.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+      # Default catalog and schema for all dataset SQL queries in the dashboard.
+      # Requires Databricks CLI >= 0.281.0 (January 2026).
+      dataset_catalog: ${var.catalog}
+      dataset_schema: ${var.schema}
+      permissions:
+        - level: CAN_RUN
+          group_name: users

@@ -1,0 +1,340 @@
+{
+  "datasets": [
+    {
+      "name": "ds_detail",
+      "displayName": "Transcription Detail",
+      "queryLines": [
+        "SELECT ",
+        "  path, file_name, file_extension, ",
+        "  ROUND(file_size_bytes / 1024.0, 1) AS file_size_kb, ",
+        "  transcription_length, transcription_word_count, ",
+        "  sentiment, topic, summary, ",
+        "  _ingested_date, _analyzed_at, _nlp_model ",
+        "FROM gold_audio_sentiment_analysis"
+      ]
+    },
+    {
+      "name": "ds_daily",
+      "displayName": "Daily Statistics",
+      "queryLines": [
+        "SELECT _ingested_date, topic, sentiment, transcription_count, ",
+        "  avg_transcription_length, avg_word_count ",
+        "FROM gold_audio_daily_stats"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "overview",
+      "displayName": "Overview",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "title",
+            "multilineTextboxSpec": {
+              "lines": ["## Speech-to-Text Analytics Dashboard"]
+            }
+          },
+          "position": {"x": 0, "y": 0, "width": 6, "height": 1}
+        },
+        {
+          "widget": {
+            "name": "subtitle",
+            "multilineTextboxSpec": {
+              "lines": ["Gold layer analysis — sentiment, topics, and transcription metrics from contact center audio recordings"]
+            }
+          },
+          "position": {"x": 0, "y": 1, "width": 6, "height": 1}
+        },
+        {
+          "widget": {
+            "name": "kpi-total",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_detail",
+                  "fields": [
+                    {"name": "count(file_name)", "expression": "COUNT(`file_name`)"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {"fieldName": "count(file_name)", "displayName": "Total Transcriptions"}
+              },
+              "frame": {"showTitle": true, "title": "Total Transcriptions"}
+            }
+          },
+          "position": {"x": 0, "y": 2, "width": 2, "height": 3}
+        },
+        {
+          "widget": {
+            "name": "kpi-avg-length",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_detail",
+                  "fields": [
+                    {"name": "avg(transcription_length)", "expression": "AVG(`transcription_length`)"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {"fieldName": "avg(transcription_length)", "displayName": "Avg Length (chars)"}
+              },
+              "frame": {"showTitle": true, "title": "Avg Transcription Length"}
+            }
+          },
+          "position": {"x": 2, "y": 2, "width": 2, "height": 3}
+        },
+        {
+          "widget": {
+            "name": "kpi-avg-words",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_detail",
+                  "fields": [
+                    {"name": "avg(transcription_word_count)", "expression": "AVG(`transcription_word_count`)"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {"fieldName": "avg(transcription_word_count)", "displayName": "Avg Word Count"}
+              },
+              "frame": {"showTitle": true, "title": "Avg Word Count"}
+            }
+          },
+          "position": {"x": 4, "y": 2, "width": 2, "height": 3}
+        },
+        {
+          "widget": {
+            "name": "charts-header",
+            "multilineTextboxSpec": {
+              "lines": ["### Sentiment & Topic Analysis"]
+            }
+          },
+          "position": {"x": 0, "y": 5, "width": 6, "height": 1}
+        },
+        {
+          "widget": {
+            "name": "chart-sentiment-by-topic",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_daily",
+                  "fields": [
+                    {"name": "topic", "expression": "`topic`"},
+                    {"name": "sentiment", "expression": "`sentiment`"},
+                    {"name": "sum(transcription_count)", "expression": "SUM(`transcription_count`)"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {"fieldName": "topic", "scale": {"type": "categorical"}, "displayName": "Topic"},
+                "y": {"fieldName": "sum(transcription_count)", "scale": {"type": "quantitative"}, "displayName": "Count"},
+                "color": {"fieldName": "sentiment", "scale": {"type": "categorical"}, "displayName": "Sentiment"}
+              },
+              "frame": {"showTitle": true, "title": "Sentiment Distribution by Topic"}
+            }
+          },
+          "position": {"x": 0, "y": 6, "width": 3, "height": 5}
+        },
+        {
+          "widget": {
+            "name": "chart-daily-volume",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_daily",
+                  "fields": [
+                    {"name": "_ingested_date", "expression": "`_ingested_date`"},
+                    {"name": "sum(transcription_count)", "expression": "SUM(`transcription_count`)"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {"fieldName": "_ingested_date", "scale": {"type": "temporal"}, "displayName": "Date"},
+                "y": {"fieldName": "sum(transcription_count)", "scale": {"type": "quantitative"}, "displayName": "Transcriptions"}
+              },
+              "frame": {"showTitle": true, "title": "Daily Transcription Volume"}
+            }
+          },
+          "position": {"x": 3, "y": 6, "width": 3, "height": 5}
+        },
+        {
+          "widget": {
+            "name": "details-header",
+            "multilineTextboxSpec": {
+              "lines": ["### Transcription Details"]
+            }
+          },
+          "position": {"x": 0, "y": 11, "width": 6, "height": 1}
+        },
+        {
+          "widget": {
+            "name": "detail-table",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_detail",
+                  "fields": [
+                    {"name": "file_name", "expression": "`file_name`"},
+                    {"name": "_ingested_date", "expression": "`_ingested_date`"},
+                    {"name": "topic", "expression": "`topic`"},
+                    {"name": "sentiment", "expression": "`sentiment`"},
+                    {"name": "summary", "expression": "`summary`"},
+                    {"name": "transcription_length", "expression": "`transcription_length`"},
+                    {"name": "transcription_word_count", "expression": "`transcription_word_count`"},
+                    {"name": "file_size_kb", "expression": "`file_size_kb`"}
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {"fieldName": "file_name", "displayName": "File Name"},
+                  {"fieldName": "_ingested_date", "displayName": "Date"},
+                  {"fieldName": "topic", "displayName": "Topic"},
+                  {"fieldName": "sentiment", "displayName": "Sentiment"},
+                  {"fieldName": "summary", "displayName": "Summary"},
+                  {"fieldName": "transcription_length", "displayName": "Length (chars)"},
+                  {"fieldName": "transcription_word_count", "displayName": "Word Count"},
+                  {"fieldName": "file_size_kb", "displayName": "File Size (KB)"}
+                ]
+              },
+              "frame": {"showTitle": true, "title": "Transcription Details"}
+            }
+          },
+          "position": {"x": 0, "y": 12, "width": 6, "height": 6}
+        }
+      ]
+    },
+    {
+      "name": "global-filters",
+      "displayName": "Filters",
+      "pageType": "PAGE_TYPE_GLOBAL_FILTERS",
+      "layout": [
+        {
+          "widget": {
+            "name": "filter-date",
+            "queries": [
+              {
+                "name": "ds_detail_date",
+                "query": {
+                  "datasetName": "ds_detail",
+                  "fields": [
+                    {"name": "_ingested_date", "expression": "`_ingested_date`"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-date-range-picker",
+              "encodings": {
+                "fields": [
+                  {"fieldName": "_ingested_date", "displayName": "Date Range", "queryName": "ds_detail_date"}
+                ]
+              },
+              "frame": {"showTitle": true, "title": "Date Range"}
+            }
+          },
+          "position": {"x": 0, "y": 0, "width": 2, "height": 2}
+        },
+        {
+          "widget": {
+            "name": "filter-topic",
+            "queries": [
+              {
+                "name": "ds_detail_topic",
+                "query": {
+                  "datasetName": "ds_detail",
+                  "fields": [
+                    {"name": "topic", "expression": "`topic`"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {"fieldName": "topic", "displayName": "Topic", "queryName": "ds_detail_topic"}
+                ]
+              },
+              "frame": {"showTitle": true, "title": "Topic"}
+            }
+          },
+          "position": {"x": 2, "y": 0, "width": 2, "height": 2}
+        },
+        {
+          "widget": {
+            "name": "filter-sentiment",
+            "queries": [
+              {
+                "name": "ds_detail_sentiment",
+                "query": {
+                  "datasetName": "ds_detail",
+                  "fields": [
+                    {"name": "sentiment", "expression": "`sentiment`"}
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {"fieldName": "sentiment", "displayName": "Sentiment", "queryName": "ds_detail_sentiment"}
+                ]
+              },
+              "frame": {"showTitle": true, "title": "Sentiment"}
+            }
+          },
+          "position": {"x": 4, "y": 0, "width": 2, "height": 2}
+        }
+      ]
+    }
+  ]
+}

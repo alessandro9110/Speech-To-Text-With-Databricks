@@ -31,6 +31,10 @@ variables:
       Must be one of: silver_audio_nlp_ai_query (Foundation Model API — richer summaries)
       or silver_audio_nlp_ai_func (AI SQL functions — shorter, faster).
     default: silver_audio_nlp_ai_query
+  warehouse_id:
+    description: SQL warehouse used to run dashboard queries.
+    lookup:
+      warehouse: Serverless Starter Warehouse
 
 
 # ============================================================
