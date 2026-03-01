@@ -29,10 +29,10 @@ This repository implements an end-to-end speech-to-text (STT) pipeline on Databr
 - ✅ **MLflow Evaluation** — Side-by-side quality comparison of AI SQL functions vs Foundation Model API
 - ✅ **Automated CI/CD** — GitHub Actions deploy to Dev and Prod environments
 - ✅ **Infrastructure as Code** — Databricks Asset Bundle with dev/prod targets
+- ✅ **Dashboard** — Databricks AI/BI dashboard for monitoring transcription and NLP results
 
 ### TODO
 
-- [x] **Dashboard** — Databricks AI/BI dashboard for monitoring transcription and NLP results
 - [ ] **Genie Space** — Natural language interface for querying transcription and enrichment data
 
 ---
@@ -41,7 +41,9 @@ This repository implements an end-to-end speech-to-text (STT) pipeline on Databr
 
 ### Prerequisites
 
-- Databricks workspace with Unity Catalog enabled
+- **Databricks workspace(s) with Unity Catalog enabled**
+  - **Two workspaces** (recommended for full CI/CD): one for `dev`, one for `prod` — each target in `databricks.yml` points to a separate workspace, ensuring complete environment isolation
+  - **One workspace** (simplified setup): both `dev` and `prod` targets deploy to the same workspace, differentiated only by schema name — suitable for personal projects or demos
 - GitHub repository with administrative access
 - Databricks CLI installed (optional, for local deployment)
 
