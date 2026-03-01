@@ -23,6 +23,8 @@ This dataset contains English language audio recordings from contact center scen
 
 ## Solution Architecture
 
+![Databricks Audio Intelligence Pipeline](../docs/images/DataflowDiagram.png)
+
 The solution follows a medallion architecture to process audio files through multiple stages:
 
 ### Processing Flow
@@ -58,6 +60,11 @@ The solution follows a medallion architecture to process audio files through mul
    - Two pages: **Overview** (KPIs, sentiment × topic bar chart, daily volume, detail table) and **Global Filters** (date range, topic, sentiment)
    - Dashboard file: `src/dashboards/stt_analytics.lvdash.json`
 
+7. **Genie Space** ✅
+   - Natural language interface for querying the gold layer tables
+   - Genie Space is not yet a native DABs resource type; it is provisioned by the `stt_genie_setup` job which calls the Databricks REST API via the Python SDK
+   - Setup notebook: `src/stt_genie/create_genie_space.py` (idempotent — safe to re-run)
+
 ---
 
 ## Project Structure
@@ -71,6 +78,7 @@ speech_to_text_asset_bundle/
 │   ├── stt_nlp_enrichment.pipeline.yml             # Silver NLP enrichment pipeline
 │   ├── stt_gold_layer.pipeline.yml                 # Gold aggregation pipeline
 │   ├── stt_dashboard.dashboard.yml                 # AI/BI dashboard resource
+│   ├── stt_genie.job.yml                           # Genie Space setup job
 │   └── stt_main.job.yml                            # Orchestration job
 └── src/
     ├── stt_audio_transcription/transformations/
@@ -84,6 +92,8 @@ speech_to_text_asset_bundle/
     │   └── gold_aggregates.py                      # gold_audio_daily_stats + gold_audio_sentiment_by_topic
     ├── dashboards/
     │   └── stt_analytics.lvdash.json               # AI/BI dashboard definition (Lakeview format)
+    ├── stt_genie/
+    │   └── create_genie_space.py                   # Notebook: create/update Genie Space via SDK
     └── stt_nlp_evaluation/evaluation/
         └── nlp_quality_evaluation.ipynb            # MLflow GenAI evaluation notebook
 ```
@@ -96,6 +106,7 @@ Contains YAML definitions for all Databricks resources:
 - **`stt_nlp_enrichment.pipeline.yml`** — Serverless SDP pipeline: enriches `silver_audio_transcription` with sentiment, summary, entities, topic, and translation. Produces two implementations for quality comparison.
 - **`stt_gold_layer.pipeline.yml`** — Serverless SDP pipeline: builds analysis-ready gold tables from the NLP-enriched silver data. Flattens entity structs, adds derived metrics, and produces daily and topic/sentiment aggregations.
 - **`stt_dashboard.dashboard.yml`** — AI/BI (Lakeview) dashboard resource. Points to `src/dashboards/stt_analytics.lvdash.json` and resolves the catalog/schema at deploy time via `dataset_catalog` / `dataset_schema`, so the same JSON works in both dev and prod.
+- **`stt_genie.job.yml`** — One-time setup job that creates or updates the Genie Space by running `src/stt_genie/create_genie_space.py`. Idempotent: matches by display name and updates if found, creates otherwise. Run after the first deployment and whenever the space configuration changes.
 - **`stt_main.job.yml`** — Orchestration job that chains all three pipelines in sequence, then runs the MLflow evaluation notebook in parallel with the gold layer update.
 
 ### `/src/stt_gold_layer/transformations/`
@@ -159,6 +170,7 @@ The bundle supports two deployment targets:
 | `nlp_model`             | Foundation Model API endpoint used for NLP tasks via `ai_query()`                        | `databricks-meta-llama-3-3-70b-instruct` |
 | `gold_nlp_source_table` | Silver NLP table used as gold layer source (`silver_audio_nlp_ai_query` or `_ai_func`)   | `silver_audio_nlp_ai_query`              |
 | `warehouse_id`          | SQL warehouse for dashboard queries (resolved automatically from `Shared SQL Warehouse`) | (lookup)                                 |
+| `genie_space_name`      | Display name of the Genie Space created by `stt_genie_setup`                             | `Speech to Text Analytics`               |
 
 ### Deployment
 
