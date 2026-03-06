@@ -14,6 +14,12 @@
 
 ---
 
+## Databricks Setup Steps:
+1. Create Catalog
+2. Create Service Principal and Assign Permissions
+3. Create the OIDC federation policies
+4. Create the Git Folder in the Workspace
+
 ## 1. Create the Catalog
 
 Before deploying the asset bundle, create the required catalog in Databricks:
