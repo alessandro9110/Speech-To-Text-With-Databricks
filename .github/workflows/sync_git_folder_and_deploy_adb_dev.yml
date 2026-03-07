@@ -2,6 +2,7 @@ name: Sync Git Folder and Deploy Dev
 
 concurrency: dev_environment
 
+# trigger workflow on pushes to the specified branch and paths
 on:
   push:
     branches:
@@ -56,19 +57,32 @@ jobs:
       
       - name: Install Databricks CLI
         uses: databricks/setup-cli@main
-        
+       
+      # Update command will sync the git folder in Databricks with the branch you specify. (dev)
       - name: Update git folder
         # Set your workspace path and branch name here
         run: databricks repos update /Workspace/Shared/Speech-To-Text-With-Databricks --branch dev
-        
+      
+      # Validate the asset bundle to ensure it is correctly configured before deployment. 
+      # Checks for issues such as missing variables, incorrect configurations, or other potential problems that could cause deployment to fail.
       - name: Validate asset bundle for dev
         working-directory: ./speech_to_text_asset_bundle
-        run: databricks bundle validate --target dev --var="service_principal_id=${{ secrets.DATABRICKS_CLIENT_ID }}"
-        
+        run: databricks bundle validate 
+             --target dev 
+             --var="service_principal_id=${{ secrets.DATABRICKS_CLIENT_ID }}"
+      
+      # Planning the deployment allows you to see a preview of the changes that will be made to the Databricks workspace without actually applying them. 
+      # This step is crucial for verifying that the intended changes are correct and won't cause any issues in the development environment.
       - name: Plan asset bundle for dev
         working-directory: ./speech_to_text_asset_bundle
-        run: databricks bundle plan --target dev --var="service_principal_id=${{ secrets.DATABRICKS_CLIENT_ID }}"
-        
+        run: databricks bundle plan 
+             --target dev 
+             --var="service_principal_id=${{ secrets.DATABRICKS_CLIENT_ID }}"
+      
+      # Deploy the asset bundle to the development environment. 
+      # The --auto-approve flag allows the deployment to proceed without manual confirmation, which is useful for automated workflows.
       - name: Deploy asset bundle to dev
         working-directory: ./speech_to_text_asset_bundle
-        run: databricks bundle deploy --auto-approve --target dev --var="service_principal_id=${{ secrets.DATABRICKS_CLIENT_ID }}"
+        run: databricks bundle deploy --auto-approve 
+             --target dev 
+             --var="service_principal_id=${{ secrets.DATABRICKS_CLIENT_ID }}"

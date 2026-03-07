@@ -117,8 +117,10 @@ targets:
       service_principal_name: ${var.service_principal_id}
 
     default: true
+    #mode: development # development mode automatically sets pipelines_development to true in presets, but you can also set it manually if you want to use production mode with development settings for pipelines.
 
     presets:
+      # name_prefix: 'd_' # optional prefix added to all resource names, useful for testing to avoid name collisions with prod resources or other developers' resources. Uncomment to activate.
       pipelines_development: true # set development to true for pipelines
       trigger_pause_status: PAUSED # set pause_status to PAUSED for all triggers and schedules
       jobs_max_concurrent_runs: 10 # set max_concurrent runs to 10 for all jobs
@@ -154,8 +156,10 @@ targets:
             catalog: ${var.catalog}
             schema: ${var.schema}
             nlp_source_table: ${var.gold_nlp_source_table}
-
+      
       jobs:
+        # this job orchestrates the execution of the pipelines and it includes notebook/script tasks for additional orchestration, monitoring, or alerting logic. 
+        # It receives parameters that can be forwarded to notebook/script tasks via base_parameters, but pipeline tasks receive configuration from the pipeline definition above, resolved at bundle deploy time.
         stt_main:
           name: stt_main
           parameters:
@@ -197,9 +201,6 @@ targets:
       #host
       root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
 
-    variables:
-      catalog: speech_to_text
-      schema: prod
     
         # define resouces like: schemas etc.
     resources:
@@ -207,7 +208,7 @@ targets:
         stt_audio_transcription:
           name: stt_audio_transcription
           configuration:
-            catalog: ${var.catalog}
+            catalog: ${var.catalog} 
             schema: ${var.schema}
             schema_location_base: /Volumes/${var.catalog}/${var.schema}/files/_schema_metadata
             stt_model: ${var.stt_model}
@@ -239,8 +240,8 @@ targets:
 
       schemas:
         prod:
-          name: prod
-          catalog_name: speech_to_text
+          name: ${var.schema}
+          catalog_name: ${var.catalog}
           comment: 'Schema for production'
 
 
