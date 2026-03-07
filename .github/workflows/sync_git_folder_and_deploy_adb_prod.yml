@@ -42,7 +42,6 @@ jobs:
       DATABRICKS_AUTH_TYPE: github-oidc
       DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
-      ADMIN_USER_EMAIL: ${{ vars.ADMIN_USER_EMAIL }}
 
     steps:
       - uses: actions/checkout@v3
